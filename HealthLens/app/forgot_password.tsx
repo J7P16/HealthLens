@@ -1,32 +1,39 @@
 import { Text, View, StyleSheet, TextInput, Button, } from "react-native";
 import { Link } from 'expo-router';
 import React from 'react';
-export default function Index() {
+export default function ForgotPassword() {
   return (
     <View style={styles.overallContainer}>
-      <Text style={styles.header}>HealthLens</Text>
-      <Text style={styles.signIn}>Sign In</Text>
-      <View style={styles.loginBox}>
+      <View style={styles.centerContent}>
+        <Text style={styles.header}>HealthLens</Text>
+        <Text style={styles.signIn}>Password Reset</Text>
+        <View style={styles.loginBox}>
 
-        <TextInput 
-        style={styles.input}
-        placeholder="Email"
-        autoComplete="email"
-        ></TextInput>
+          <TextInput 
+          style={styles.input}
+          placeholder="Email"
+          autoComplete="email"
+          ></TextInput>
 
-        <TextInput 
-        style={styles.input}
-        placeholder="Password"
-        autoComplete="current-password"
-        ></TextInput>
+          <TextInput 
+          style={styles.input}
+          placeholder="Current Password"
+          autoComplete="current-password"
+          ></TextInput>
 
-        <Button
-        title="Sign in"
-        ></Button>
+          <TextInput 
+          style={styles.input}
+          placeholder="New Password"
+          autoComplete="new-password"
+          ></TextInput>
+
+          <Button
+          title="Send Email"
+          ></Button>
+        </View>
       </View>
 
       <View style={styles.footer}>
-        <Link href={'/forgot_password'} style={styles.help}>Forgot password?</Link>
         <Link href={'/create_account'} style={styles.help}>No account? Create one!</Link>
       </View>
     </View>
@@ -35,6 +42,10 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   overallContainer: {
+    flex: 1,
+  },
+
+  centerContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -47,7 +58,6 @@ const styles = StyleSheet.create({
   loginBox: {
     padding: 10,
     width: '65%',
-    flex: 0.1
   },
 
   signIn: {
@@ -62,9 +72,9 @@ const styles = StyleSheet.create({
   },
 
   footer: {
-    flex: 0.4,
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 50,
   },
 
   help: {
