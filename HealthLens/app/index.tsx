@@ -1,28 +1,36 @@
 import { Text, View, StyleSheet, TextInput, Button, } from "react-native";
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React from 'react';
+
 export default function Index() {
+  const handleSignIn = () => {
+    router.push('/(tabs)/Diagnose');
+  };
+
   return (
     <View style={styles.overallContainer}>
-      <Text style={styles.header}>HealthLens</Text>
-      <Text style={styles.signIn}>Sign In</Text>
-      <View style={styles.loginBox}>
+      <View style={styles.centerContent}>
+        <Text style={styles.header}>HealthLens</Text>
+        <Text style={styles.signIn}>Sign In</Text>
+        <View style={styles.loginBox}>
 
-        <TextInput 
-        style={styles.input}
-        placeholder="Email"
-        autoComplete="email"
-        ></TextInput>
+          <TextInput 
+          style={styles.input}
+          placeholder="Email"
+          autoComplete="email"
+          ></TextInput>
 
-        <TextInput 
-        style={styles.input}
-        placeholder="Password"
-        autoComplete="current-password"
-        ></TextInput>
+          <TextInput 
+          style={styles.input}
+          placeholder="Password"
+          autoComplete="current-password"
+          ></TextInput>
 
-        <Button
-        title="Sign in"
-        ></Button>
+          <Button
+          title="Sign in"
+          onPress={handleSignIn}
+          ></Button>
+        </View>
       </View>
 
       <View style={styles.footer}>
@@ -36,6 +44,10 @@ export default function Index() {
 const styles = StyleSheet.create({
   overallContainer: {
     flex: 1,
+  },
+
+  centerContent: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -47,7 +59,6 @@ const styles = StyleSheet.create({
   loginBox: {
     padding: 10,
     width: '65%',
-    flex: 0.1
   },
 
   signIn: {
@@ -62,9 +73,9 @@ const styles = StyleSheet.create({
   },
 
   footer: {
-    flex: 0.4,
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 50,
   },
 
   help: {
