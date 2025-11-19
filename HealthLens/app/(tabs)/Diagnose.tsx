@@ -1,6 +1,6 @@
 import { Text, View, StyleSheet } from "react-native";
 
-export default function Home() {
+export default function Diagnose() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Take a Pic!</Text>
