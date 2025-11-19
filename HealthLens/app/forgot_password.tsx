@@ -17,13 +17,13 @@ export default function ForgotPassword() {
 
           <TextInput 
           style={styles.input}
-          placeholder="Current Password"
-          autoComplete="current-password"
+          placeholder="New Password"
+          autoComplete="new-password"
           ></TextInput>
 
           <TextInput 
           style={styles.input}
-          placeholder="New Password"
+          placeholder="Confirm Password"
           autoComplete="new-password"
           ></TextInput>
 
