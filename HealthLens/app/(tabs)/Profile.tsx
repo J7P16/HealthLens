@@ -1,10 +1,18 @@
-import { Text, View, StyleSheet, Image, ScrollView, Dimensions, StatusBar } from "react-native";
-
+import { Text, View, StyleSheet, Image, ScrollView, Dimensions, StatusBar, TouchableOpacity } from "react-native";
+import {router} from 'expo-router';
 export default function Profile() {
   const screenHeight = Dimensions.get('window').height;
-  
+  const handleSettingsPress = () => {
+    router.push('/Settings');
+  }
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={handleSettingsPress} style={styles.topBar}>
+        <Image
+        style={styles.settingPng}
+        source={require('../../assets/images/settings/setting.png')}
+        />
+      </TouchableOpacity>
       <View style={styles.profileSection}>
         <Text style={styles.title}>User's Name</Text>
         <Image 
@@ -74,5 +82,18 @@ const styles = StyleSheet.create({
   componentText: {
     fontSize: 16,
     color: '#333',
+  },
+  settingPng: {
+    height: 25,
+    width: 25,
+    position: 'absolute'
+  },
+  topBar: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'flex-start',
+    paddingTop: 50,
+    marginBottom: 20,
   }
 });
