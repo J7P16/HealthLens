@@ -11,7 +11,7 @@ export default function Settings() {
     <TouchableOpacity onPress={handleSettingsPress} style={styles.topBar}>
         <Image
         style={styles.backPng}
-        source={require('../../../assets/settings/images/back.png')}
+        source={require('../../../assets/images/settings/back.png')}
         />
     </TouchableOpacity>
 
