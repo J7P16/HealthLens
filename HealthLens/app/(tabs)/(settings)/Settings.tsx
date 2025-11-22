@@ -10,7 +10,7 @@ export default function Settings() {
     <View style={styles.container}>
     <TouchableOpacity onPress={handleSettingsPress} style={styles.topBar}>
         <Image
-        style={styles.backPng}
+        style={styles.back}
         source={require('../../../assets/images/settings/back.png')}
         />
     </TouchableOpacity>
@@ -22,18 +22,38 @@ export default function Settings() {
       <View style={styles.historySection}>
         <ScrollView style={[styles.historyList, { height: screenHeight * 0.3 }]}>
             <View style={styles.component}>
+                <Image
+                style={styles.png}
+                source={require('../../../assets/images/settings/account.png')}
+                />
               <Text style={styles.componentText}>Account & Policy</Text>
             </View>
             <View style={styles.component}>
+                <Image
+                style={styles.png}
+                source={require('../../../assets/images/settings/bookmark.png')}
+                />
               <Text style={styles.componentText}>Manage Data</Text>
             </View>
             <View style={styles.component}>
+                <Image
+                style={styles.png}
+                source={require('../../../assets/images/settings/night-mode.png')}
+                />
               <Text style={styles.componentText}>Dark Mode & Appearences</Text>
             </View>
             <View style={styles.component}>
+                <Image
+                style={styles.png}
+                source={require('../../../assets/images/settings/bell.png')}
+                />
               <Text style={styles.componentText}>Notifications</Text>
             </View>
-            <View style={styles.component}>
+            <View style={[styles.component, styles.lastComponent]}>
+                <Image
+                style={styles.png}
+                source={require('../../../assets/images/settings/bin.png')}
+                />
               <Text style={styles.componentText}>Delete Account</Text>
             </View>
         </ScrollView>
@@ -74,19 +94,23 @@ const styles = StyleSheet.create({
     height: 250, // Fixed height instead of percentage
   },
   component: {
+    flexDirection: 'row',
     width: '100%',
     padding: 24,
     borderTopWidth: 0.5,
+  },
+  lastComponent: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#000',
   },
   componentText: {
     fontSize: 18,
     color: '#333',
   },
-  backPng: {
+  png: {
     height: 25,
     width: 25,
-    position: 'absolute',
-    marginLeft: 20,
+    marginRight: 20
   },
   topBar: {
     width: '100%',
@@ -95,5 +119,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingTop: 20,
     marginBottom: 20,
+  },
+  back: {
+    height: 25,
+    width: 25,
+    position: 'absolute',
+    marginLeft: 20,
   }
 });
