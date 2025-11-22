@@ -11,7 +11,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera."
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.anonymous.HealthLens"
     },
@@ -57,6 +58,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2ae57a4e-e00f-43d6-ad0b-2112a0d575f5"
+      }
     }
   }
 }
