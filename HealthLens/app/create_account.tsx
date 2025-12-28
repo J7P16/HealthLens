@@ -1,7 +1,24 @@
 import { Text, View, StyleSheet, TextInput, Button, } from "react-native";
-import { Link } from 'expo-router';
-import React from 'react';
+import { Link, router } from 'expo-router';
+import React, { useState }from 'react';
+// Auth Imports.
+import { auth } from '../firebaseConfig';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+
 export default function ForgotPassword() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const signUp = async () => {
+      try {
+        const user = await createUserWithEmailAndPassword(auth, email, password);
+        if (user) router.push('/(tabs)/Diagnose');
+      } catch (error: any) {
+        console.log(error)
+        alert('Sign up failed: ' + error.message);
+      }
+    }
+
   return (
     <View style={styles.overallContainer}>
       <View style={styles.centerContent}>
@@ -13,11 +30,22 @@ export default function ForgotPassword() {
           <TextInput 
           style={styles.input}
           placeholder="email@domain.com"
+          value= {email}
+          onChangeText={setEmail}
           autoComplete="email"
+          ></TextInput>
+
+          <TextInput 
+          style={styles.input}
+          placeholder="password"
+          value={password}
+          onChangeText={setPassword}
+          autoComplete="new-password"
           ></TextInput>
 
           <Button
           title="Continue"
+          onPress={signUp}
           ></Button>
 
           <View style={styles.orContainer}>

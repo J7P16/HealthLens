@@ -1,11 +1,24 @@
 import { Text, View, StyleSheet, TextInput, Button, } from "react-native";
 import { Link, router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
+// Auth Imports
+import { auth } from '../firebaseConfig';
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function Index() {
-  const handleSignIn = () => {
-    router.push('/(tabs)/Diagnose');
-  };
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const signIn = async () => {
+    try {
+      const user = await signInWithEmailAndPassword(auth, email, password);
+      if (user) router.push('/(tabs)/Diagnose');
+    } catch (error: any) {
+      console.log(error)
+      alert('Sign in failed: ' + error.message);
+    }
+  }
 
   return (
     <View style={styles.overallContainer}>
@@ -14,21 +27,25 @@ export default function Index() {
         <Text style={styles.signIn}>Sign In</Text>
         <View style={styles.loginBox}>
 
-          <TextInput 
-          style={styles.input}
-          placeholder="Email"
-          autoComplete="email"
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoComplete="email"
           ></TextInput>
 
-          <TextInput 
-          style={styles.input}
-          placeholder="Password"
-          autoComplete="current-password"
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            autoComplete="current-password"
           ></TextInput>
 
           <Button
-          title="Sign in"
-          onPress={handleSignIn}
+            title="Sign in"
+            onPress={signIn}
           ></Button>
         </View>
       </View>
