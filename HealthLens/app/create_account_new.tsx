@@ -5,7 +5,7 @@ import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import {Stack, router} from "expo-router"
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function SignIn() {
+export default function createAccount() {
     const { width, height } = useWindowDimensions();
     const [fontsLoaded] = useFonts({
         'Monda': require('./styles/fonts/Monda.ttf'),
@@ -56,18 +56,21 @@ export default function SignIn() {
                             style={{outlineStyle: 'none', color: '#9C9C9C', fontFamily: 'Monda'}}
                         ></TextInput>
                     </View>
-                    <Pressable>
-                        <Text 
-                            style={{
-                                fontFamily: 'Monda', 
-                                fontSize: RFValue(10, height), 
-                                color: '#9C9C9C', 
-                                textAlign:'right',
-                                marginHorizontal: '3%'
-                                }}>
-                            Forgot Password?
-                        </Text>
-                    </Pressable>
+                </View>
+
+                <View>
+                    <Text style={{color: '#ADADAD', fontSize: RFValue(16, height), fontFamily: 'Monda'}}>Confirm Password</Text>
+                    <View style={[globalStyles.input]} resizeMode="contain">
+                        <Image 
+                            source={require('../assets/images/lockicon.png')} 
+                            style={styles.icon}
+                            resizeMode="contain"
+                        />
+                        <TextInput 
+                            placeholder="Confirmed Password"
+                            style={{outlineStyle: 'none', color: '#9C9C9C', fontFamily: 'Monda'}}
+                        ></TextInput>
+                    </View>
                 </View>
 
                 <Pressable style={{flexDirection: 'row', justifyContent: 'center'}}>
@@ -77,7 +80,7 @@ export default function SignIn() {
                         end={{ x: 1, y: 0 }}
                         style={globalStyles.button}
                     >                        
-                        <Text style={{color: '#FFFFFF', fontFamily: 'Monda'}}>Log In</Text>
+                        <Text style={{color: '#FFFFFF', fontFamily: 'Monda'}}>Create Account</Text>
                         
                     </LinearGradient>
                 </Pressable>
@@ -109,8 +112,8 @@ export default function SignIn() {
         </Pressable>
 
         <View style={{alignItems: 'center', margin: '6%'}}>
-            <Text style={{color: '#7C7C7C', fontFamily: 'Monda', fontSize: RFValue(12, height)}}>New here? Create an account!</Text>
-            <Pressable onPress={() => router.push('/create_account_new')}
+            <Text style={{color: '#7C7C7C', fontFamily: 'Monda', fontSize: RFValue(12, height)}}>Already have an account?</Text>
+            <Pressable onPress={() => router.push('/sign_in')}
                 style={{flexDirection: 'row', justifyContent: 'center', width: width * .8}}
             >
                 <LinearGradient
@@ -119,7 +122,7 @@ export default function SignIn() {
                     end={{ x: 1, y: 0 }}
                     style={[globalStyles.button, {margin: '1%', height: height * .08}]}
                 >                        
-                    <Text style={{color: '#FFFFFF', fontFamily: 'Monda'}}>Create Account</Text>
+                    <Text style={{color: '#FFFFFF', fontFamily: 'Monda'}}>Sign In</Text>
                     
                 </LinearGradient>
             </Pressable>
