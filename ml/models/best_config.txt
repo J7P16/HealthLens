@@ -1,0 +1,9 @@
+Best Model Configuration
+
+Mode: light
+Model: efficientnetb3
+Epochs: 3
+Batch Size: 8
+Learning Rate: 0.0001
+Image Size: 224
+Best Validation Accuracy: 0.5067
