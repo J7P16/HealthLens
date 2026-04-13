@@ -1,0 +1,14 @@
+{
+  "name": "healthlens-root",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "Backend",
+    "Frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=Backend",
+    "dev:frontend": "npm run start --workspace=Frontend",
+    "dev": "npm run dev:backend & npm run dev:frontend"
+  }
+}
