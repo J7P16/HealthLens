@@ -9,6 +9,7 @@ export const palette = {
   slate50: '#F7F9FD',
   slate100: '#EEF2F8',
   slate150: '#E9EDF5',
+  slate160: '#E9F1FA',
   slate200: '#D8DEE8',
   slate250: '#CCD5E3',
   slate300: '#BAC4D6',

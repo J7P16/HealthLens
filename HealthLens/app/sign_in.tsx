@@ -13,9 +13,9 @@ export default function SignIn() {
     return (
       <ScrollView 
         contentContainerStyle={[globalStyles.scrollContent]}
-        style= {globalStyles.bgColor}
+        style={globalStyles.bgColor}
         >
-        <Stack.Screen options= {{headerShown: false}}/>{""}
+        <Stack.Screen options={{headerShown: false}}/>{""}
 
         <Image 
         source={require('../assets/images/healthlens-logo.png')}
@@ -159,7 +159,4 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignContent: 'center'
     }
-    
-      
-
 })
