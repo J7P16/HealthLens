@@ -1,162 +1,200 @@
-import { Text, View, StyleSheet, TextInput, Pressable, Image, useWindowDimensions, ScrollView} from "react-native";
-import globalStyles from './styles/globalStyles';
-import { useFonts } from 'expo-font';
+import {
+  Text,
+  View,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  Image,
+  useWindowDimensions,
+  ScrollView,
+} from "react-native";
+import globalStyles from "./styles/globalStyles";
+import { useFonts } from "expo-font";
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
-import {Stack, router} from "expo-router"
-import { LinearGradient } from 'expo-linear-gradient';
+import { Stack, router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+
+const provider = new GoogleAuthProvider();
+const auth = getAuth();
+
+const handleGoogleSignIn = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    if (user) {
+      console.log("User signed in:", user);
+
+      const userRef = doc(db, "users", user.uid);
+      console.log("Attempting Firestore write..."); // ← does this log?
+
+      const userSnap = await getDoc(userRef);
+      console.log("Got snap:", userSnap.exists()); // ← does this log?
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      router.push("/(tabs)/Diagnose");
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 export default function SignIn() {
-    const { width, height } = useWindowDimensions();
-    const [fontsLoaded] = useFonts({
-        'Monda': require('./styles/fonts/Monda.ttf'),
-      });
-    return (
-      <ScrollView 
-        contentContainerStyle={[globalStyles.scrollContent]}
-        style={globalStyles.bgColor}
-        >
-        <Stack.Screen options={{headerShown: false}}/>{""}
+  const { width, height } = useWindowDimensions();
+  const [fontsLoaded] = useFonts({
+    Monda: require("./styles/fonts/Monda.ttf"),
+  });
+  return (
+    <ScrollView contentContainerStyle={[globalStyles.scrollContent]} style={globalStyles.bgColor}>
+      <Stack.Screen options={{ headerShown: false }} />
+      {""}
 
-        <Image 
-        source={require('../assets/images/healthlens-logo.png')}
-        style={[{ width: width * 0.65, height: height * .3, margin: '7%'}]}
+      <Image
+        source={require("../assets/images/healthlens-logo.png")}
+        style={[{ width: width * 0.65, height: height * 0.3, margin: "7%" }]}
         resizeMode="contain"
-        />
-        
-        <View style={[globalStyles.card, { width: width * 0.85, height: height * .9, margin: '5%'}]}>
-            <ScrollView 
-                nestedScrollEnabled={true} 
-                showsVerticalScrollIndicator={true}
-            >
-                <View>
-                    <Text style={{color: '#ADADAD', fontSize: RFValue(16, height), fontFamily: 'Monda'}}>Email</Text>
-                    <View style={[globalStyles.input]}>
-                        <Image 
-                            source={require('../assets/images/mailicon.png')} 
-                            style={styles.icon}
-                            resizeMode="contain"
-                        />
-                        <TextInput 
-                            placeholder="Your Email"
-                            style={{outlineStyle: 'none', color: '#9C9C9C', fontFamily: 'Monda'}}
-                        ></TextInput>
-                    </View>
-                </View>
+      />
 
-                <View>
-                    <Text style={{color: '#ADADAD', fontSize: RFValue(16, height), fontFamily: 'Monda'}}>Password</Text>
-                    <View style={[globalStyles.input]} resizeMode="contain">
-                        <Image 
-                            source={require('../assets/images/lockicon.png')} 
-                            style={styles.icon}
-                            resizeMode="contain"
-                        />
-                        <TextInput 
-                            placeholder="Your Password"
-                            style={{outlineStyle: 'none', color: '#9C9C9C', fontFamily: 'Monda'}}
-                        ></TextInput>
-                    </View>
-                    <Pressable>
-                        <Text 
-                            style={{
-                                fontFamily: 'Monda', 
-                                fontSize: RFValue(10, height), 
-                                color: '#9C9C9C', 
-                                textAlign:'right',
-                                marginHorizontal: '3%'
-                                }}>
-                            Forgot Password?
-                        </Text>
-                    </Pressable>
-                </View>
-
-                <Pressable style={{flexDirection: 'row', justifyContent: 'center'}}>
-                    <LinearGradient
-                        colors={['#4BA8E6', '#5187DD']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={globalStyles.button}
-                    >                        
-                        <Text style={{color: '#FFFFFF', fontFamily: 'Monda'}}>Log In</Text>
-                        
-                    </LinearGradient>
-                </Pressable>
-            </ScrollView>
-        </View>
-
-        <View style={styles.line}>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#7C7C7C' }} />
-            <Text style={{ marginHorizontal: 10, color: '#7C7C7C', fontFamily: 'Monda'}}>Or</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#7C7C7C' }} />
-        </View>
-
-        <Pressable style={[styles.continue]}>
-            <Image 
-                source={require('../assets/images/googleicon.png')} 
+      <View style={[globalStyles.card, { width: width * 0.85, height: height * 0.9, margin: "5%" }]}>
+        <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
+          <View>
+            <Text style={{ color: "#ADADAD", fontSize: RFValue(16, height), fontFamily: "Monda" }}>
+              Email
+            </Text>
+            <View style={[globalStyles.input]}>
+              <Image
+                source={require("../assets/images/mailicon.png")}
                 style={styles.icon}
                 resizeMode="contain"
-            />
-            <Text style={{color: '#9C9C9C'}}>Continue with Google</Text>
-        </Pressable>
+              />
+              <TextInput
+                placeholder="Your Email"
+                style={{ outlineStyle: "none", color: "#9C9C9C", fontFamily: "Monda" }}
+              ></TextInput>
+            </View>
+          </View>
 
-        <Pressable style={[styles.continue]}>
-            <Image 
-                source={require('../assets/images/appleicon.png')} 
+          <View>
+            <Text style={{ color: "#ADADAD", fontSize: RFValue(16, height), fontFamily: "Monda" }}>
+              Password
+            </Text>
+            <View style={[globalStyles.input]} resizeMode="contain">
+              <Image
+                source={require("../assets/images/lockicon.png")}
                 style={styles.icon}
                 resizeMode="contain"
-            />
-            <Text style={{color: '#9C9C9C'}}>Continue with Apple</Text>
-        </Pressable>
-
-        <View style={{alignItems: 'center', margin: '6%'}}>
-            <Text style={{color: '#7C7C7C', fontFamily: 'Monda', fontSize: RFValue(12, height)}}>New here? Create an account!</Text>
-            <Pressable onPress={() => router.push('/create_account_new')}
-                style={{flexDirection: 'row', justifyContent: 'center', width: width * .8}}
-            >
-                <LinearGradient
-                    colors={['#4BA8E6', '#5187DD']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[globalStyles.button, {margin: '1%', height: height * .08}]}
-                >                        
-                    <Text style={{color: '#FFFFFF', fontFamily: 'Monda'}}>Create Account</Text>
-                    
-                </LinearGradient>
+              />
+              <TextInput
+                placeholder="Your Password"
+                style={{ outlineStyle: "none", color: "#9C9C9C", fontFamily: "Monda" }}
+              ></TextInput>
+            </View>
+            <Pressable>
+              <Text
+                style={{
+                  fontFamily: "Monda",
+                  fontSize: RFValue(10, height),
+                  color: "#9C9C9C",
+                  textAlign: "right",
+                  marginHorizontal: "3%",
+                }}
+              >
+                Forgot Password?
+              </Text>
             </Pressable>
-        </View>
+          </View>
 
+          <Pressable style={{ flexDirection: "row", justifyContent: "center" }}>
+            <LinearGradient
+              colors={["#4BA8E6", "#5187DD"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={globalStyles.button}
+            >
+              <Text style={{ color: "#FFFFFF", fontFamily: "Monda" }}>Log In</Text>
+            </LinearGradient>
+          </Pressable>
+        </ScrollView>
+      </View>
+
+      <View style={styles.line}>
+        <View style={{ flex: 1, height: 1, backgroundColor: "#7C7C7C" }} />
+        <Text style={{ marginHorizontal: 10, color: "#7C7C7C", fontFamily: "Monda" }}>Or</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: "#7C7C7C" }} />
+      </View>
+
+      <Pressable style={[styles.continue]} onPress={() => handleGoogleSignIn()}>
+        <Image source={require("../assets/images/googleicon.png")} style={styles.icon} resizeMode="contain" />
+        <Text style={{ color: "#9C9C9C" }}>Continue with Google</Text>
+      </Pressable>
+
+      <Pressable style={[styles.continue]}>
+        <Image source={require("../assets/images/appleicon.png")} style={styles.icon} resizeMode="contain" />
+        <Text style={{ color: "#9C9C9C" }}>
+          Continue with Apple <span>{"{ coming soon }"}</span>
+        </Text>
+      </Pressable>
+
+      <View style={{ alignItems: "center", margin: "6%" }}>
+        <Text style={{ color: "#7C7C7C", fontFamily: "Monda", fontSize: RFValue(12, height) }}>
+          New here? Create an account!
+        </Text>
+        <Pressable
+          onPress={() => router.push("/create_account_new")}
+          style={{ flexDirection: "row", justifyContent: "center", width: width * 0.8 }}
+        >
+          <LinearGradient
+            colors={["#4BA8E6", "#5187DD"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[globalStyles.button, { margin: "1%", height: height * 0.08 }]}
+          >
+            <Text style={{ color: "#FFFFFF", fontFamily: "Monda" }}>Create Account</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
     </ScrollView>
-    );
-  }
+  );
+}
 
 const styles = StyleSheet.create({
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 5,
+  },
 
-    icon: {
-        width: 20,                
-        height: 20,
-        marginRight: 5,            
-    },
+  line: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 10,
+    marginVertical: 50,
+  },
 
-    line: {
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        width: '100%',          
-        paddingHorizontal: 10,  
-        marginVertical: 50 
-    },
-
-    continue: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 20,
-        shadowColor: '#93A0BA',
-        shadowRadius: 5,
-        shadowOpacity: 1,
-        shadowOffset: {width: 0, height: 0},
-        padding: '2%',
-        width: '70%',
-        margin: '1%',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignContent: 'center'
-    }
-})
+  continue: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    shadowColor: "#93A0BA",
+    shadowRadius: 5,
+    shadowOpacity: 1,
+    shadowOffset: { width: 0, height: 0 },
+    padding: "2%",
+    width: "70%",
+    margin: "1%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignContent: "center",
+  },
+});
