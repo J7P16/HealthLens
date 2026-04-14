@@ -2,13 +2,22 @@
   "name": "healthlens-root",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "Backend",
-    "Frontend"
-  ],
+  "workspaces": {
+    "packages": [
+      "Backend",
+      "Frontend"
+    ],
+    "nohoist": [
+      "**/expo",
+      "**/expo/**",
+      "**/react-native",
+      "**/react-native/**"
+    ]
+  },
   "scripts": {
     "dev:backend": "npm run dev --workspace=Backend",
     "dev:frontend": "npm run start --workspace=Frontend",
-    "dev": "npm run dev:backend & npm run dev:frontend"
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "expo": "expo start --project-root Frontend"
   }
 }

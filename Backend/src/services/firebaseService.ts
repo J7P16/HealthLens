@@ -10,7 +10,7 @@ check req and res which will then be used for routes.
 export const saveImage = async (uid: string, file: Express.Multer.File): Promise<string> => {
     // Writing the actual image to Firebase Storage.
     const bucket = admin.storage().bucket();
-    const fileRef = bucket.file(`users/${uid}/images/${crypto.randomUUID}`);
+    const fileRef = bucket.file(`users/${uid}/images/${crypto.randomUUID()}`);
     await fileRef.save(file.buffer, {contentType: file.mimetype});
 
     //Writing the metadata of the image into firestore.
@@ -33,7 +33,25 @@ export const fetchUser = async(uid: string) => {
         .doc(uid)
         .get();
     if (!doc.exists) return null;
-    return {/*Need to process data but have to figure out schema first.*/};
+
+    const data = doc.data();
+
+    return {
+        "uid": "string",
+        "name": "string",
+        "email": "string",
+        "age": "number",
+        "gender": "string",
+        "height": "string",
+        "weight": "number",
+        "phoneNumber": "string",
+        "countryOfOrigin": "string",
+        "allergies": "string",
+        "currentPrescription": "string",
+        "medHistory": "string",
+        "images": [],
+        "createdAt": "timestamp"
+    };
 }  
 
 
