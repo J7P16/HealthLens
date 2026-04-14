@@ -5,5 +5,5 @@ export const routes = {
   checkEmail: '/check-email',
   setNewPassword: '/set-new-password',
   passwordResetSuccess: '/password-reset-success',
-  diagnose: '/(tabs)/Diagnose', /*havent actually looked at this but lets keep it like this for now  */
+  diagnose: '/(tabs)/Diagnose',
 } as const;

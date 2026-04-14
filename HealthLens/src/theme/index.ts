@@ -2,7 +2,6 @@
 from the files listed below to make it easier to import them that way you can 
 shorten the import paths  bc it can be sm work*/
 
-
 export * from './types';
 export * from './lightTheme';
 export * from './darkTheme';
