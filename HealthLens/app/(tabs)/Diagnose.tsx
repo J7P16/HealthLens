@@ -1,37 +1,39 @@
 import { Text, View, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { CameraView, CameraType, useCameraPermissions, CameraCapturedPicture } from "expo-camera";
 import { useState, useRef, useEffect } from "react";
 import PhotoPreviewSection from "../PhotoPreviewSection";
-import { getAuth } from "firebase/auth";
-import { db } from "../../firebaseConfig";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { db } from "../config/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function Diagnose() {
   const [facing, setFacing] = useState<CameraType>("front");
   const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = useState<any>(null);
+  const [photo, setPhoto] = useState<CameraCapturedPicture | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const cameraRef = useRef<CameraView | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const auth = getAuth();
-      const user = auth.currentUser;
+    const auth = getAuth();
 
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        setUser(user);
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
-
         if (userSnap.exists()) {
-          setDisplayName(userSnap.data().displayName);
+          setDisplayName(userSnap.data().name);
         }
+      } else {
+        console.log("no user");
       }
-    };
+    });
 
-    fetchUser();
-  }, []); // runs once on mount
+    return () => unsubscribe();
+  }, []);
 
   const handleStartCamera = async () => {
     if (!permission || !permission.granted) {
@@ -92,6 +94,7 @@ export default function Diagnose() {
         photo={photo}
         handleRetakePhoto={handleRetakePhoto}
         onUploadComplete={handleUploadComplete}
+        user={user}
       />
     );
   }

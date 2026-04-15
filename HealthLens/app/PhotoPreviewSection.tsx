@@ -1,43 +1,46 @@
 import { Fontisto } from "@expo/vector-icons";
 import { CameraCapturedPicture } from "expo-camera";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TouchableOpacity, Image, StyleSheet, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { uploadImageToFirebase } from "@/uploadImage";
+import { uploadUserImage } from "./hooks/imageHooks";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const PhotoPreviewSection = ({
   photo,
   handleRetakePhoto,
   onUploadComplete,
+  user,
 }: {
   photo: CameraCapturedPicture;
   handleRetakePhoto: () => void;
   onUploadComplete: () => void;
+  user: any | null;
 }) => {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async () => {
-    if (uploading) return;
+    if (!user) {
+      Alert.alert("Error", "Not authenticated. Please sign in again.");
+      return;
+    }
+
     setUploading(true);
 
     try {
-      await uploadImageToFirebase(photo.uri);
+      await uploadUserImage(user.uid, photo.uri);
       Alert.alert("Success", "Image uploaded successfully");
-      onUploadComplete(); 
+      onUploadComplete();
     } catch {
       Alert.alert("Error", "Upload failed");
+    } finally {
       setUploading(false);
     }
   };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.box}>
-        <Image
-          source={{ uri: photo.uri }}
-          style={styles.previewContainer}
-          resizeMode="contain"
-        />
+        <Image source={{ uri: photo.uri }} style={styles.previewContainer} resizeMode="contain" />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -45,11 +48,7 @@ const PhotoPreviewSection = ({
           <Fontisto name="trash" size={36} color="black" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, styles.uploadButton]}
-          onPress={handleUpload}
-          disabled={uploading}
-        >
+        <TouchableOpacity style={[styles.button, styles.uploadButton]} onPress={handleUpload}>
           <Fontisto name="cloud-up" size={36} color="white" />
         </TouchableOpacity>
       </View>
