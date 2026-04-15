@@ -21,7 +21,7 @@ if USE_FIREBASE:
     import firebase_admin
     from firebase_admin import credentials, storage
 
-PREDICTIONS_DIR = os.path.abspath("/Users/krishgandhi/HealthLens/backend/predictions")
+PREDICTIONS_DIR = os.path.abspath("/Users/[real path name]")
 os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
