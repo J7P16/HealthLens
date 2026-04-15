@@ -9,6 +9,7 @@ export const sizes = {
   backButtonSize: 42,
   iconSm: 16,
   iconMd: 18,
+  iconLg: 60,
   logoMarkSize: 44,
   headerLogoMarkSize: 36,
 } as const;

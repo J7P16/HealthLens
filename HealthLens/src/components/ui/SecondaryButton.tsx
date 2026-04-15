@@ -6,7 +6,8 @@ import { AppText } from './AppText';
 import type { AppTheme } from '@/src/theme';
 import type { ViewStyle } from 'react-native';
 
-type PrimaryButtonProps = {
+type SecondaryButtonProps = {
+  colors: string[];
   theme: AppTheme;
   label: string;
   onPress?: () => void;
@@ -14,12 +15,11 @@ type PrimaryButtonProps = {
   style?: ViewStyle;
 };
 
-export function PrimaryButton({ theme, label, onPress, disabled = false, style}: PrimaryButtonProps) {
-  const colors = disabled ? theme.gradients.primaryDisabled : theme.gradients.primary;
+export function SecondaryButton({colors, theme, label, onPress, disabled = false, style}: SecondaryButtonProps) {
 
   return (
     <Pressable onPress={onPress} disabled={disabled} style={style}>
-      <LinearGradient colors={[...colors]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.gradient}>
+      <LinearGradient colors={colors} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.gradient}>
         <AppText
           theme={theme}
           variant="button"
