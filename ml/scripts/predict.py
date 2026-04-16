@@ -21,7 +21,7 @@ if USE_FIREBASE:
     import firebase_admin
     from firebase_admin import credentials, storage
 
-PREDICTIONS_DIR = os.path.abspath("/Users/parkseohyun/Desktop/Coding/HealthLens/ml/predictions")
+PREDICTIONS_DIR = os.path.abspath("/Users/[real path name]")
 os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +44,7 @@ args = parser.parse_args()
 
 if USE_FIREBASE:
     if not firebase_admin._apps:
-        CREDENTIAL_PATH = os.path.abspath("/Users/parkseohyun/Desktop/Coding/HealthLens/ml/firebase-key.json")
+        CREDENTIAL_PATH = os.path.abspath("/Users/[real path name]")
         cred = credentials.Certificate(CREDENTIAL_PATH)
         firebase_admin.initialize_app(cred, {
             "storageBucket": "healthlens-942ea.firebasestorage.app"

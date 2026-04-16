@@ -42,7 +42,7 @@ function runCNNModel(imagePath) {
         const baseName = path.parse(imagePath).name;
         
         // Must change path name (refer to PREDICTIONS_DIR in predict.py)
-        const predictionsDir = "/Users/parkseohyun/Desktop/Coding/HealthLens/ml/predictions"; 
+        const predictionsDir = "/Users/[real path name]"; 
         const fullJsonPath = path.join(predictionsDir, `${baseName}_full.json`);
 
         // read the json file and convert it into a javascript object
