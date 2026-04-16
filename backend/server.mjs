@@ -42,7 +42,7 @@ function runCNNModel(imagePath) {
         const baseName = path.parse(imagePath).name;
         
         // Must change path name (refer to PREDICTIONS_DIR in predict.py)
-        const predictionsDir = "/Users/[real path name]"; 
+        const predictionsDir = "/Users/parkseohyun/Desktop/Coding/HealthLens/ml/predictions"; 
         const fullJsonPath = path.join(predictionsDir, `${baseName}_full.json`);
 
         // read the json file and convert it into a javascript object
@@ -72,7 +72,7 @@ app.post('/api/diagnose', async (req, res) => {
     const cnnDiagnosisList = await runCNNModel(imagePath);
 
     // pass the result to openai 
-    console.log(`[Server] Python finished. Asking OpenAI about: ${cnnDiagnosis}...`);
+    console.log(`[Server] Python finished. Asking OpenAI about: ${cnnDiagnosisList}...`);
     const chatCompletion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },

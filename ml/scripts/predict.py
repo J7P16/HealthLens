@@ -21,7 +21,7 @@ if USE_FIREBASE:
     import firebase_admin
     from firebase_admin import credentials, storage
 
-PREDICTIONS_DIR = os.path.abspath("/Users/[real path name]")
+PREDICTIONS_DIR = os.path.abspath("/Users/parkseohyun/Desktop/Coding/HealthLens/ml/predictions")
 os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +44,8 @@ args = parser.parse_args()
 
 if USE_FIREBASE:
     if not firebase_admin._apps:
-        cred = credentials.ApplicationDefault()
+        CREDENTIAL_PATH = os.path.abspath("/Users/parkseohyun/Desktop/Coding/HealthLens/ml/firebase-key.json")
+        cred = credentials.Certificate(CREDENTIAL_PATH)
         firebase_admin.initialize_app(cred, {
             "storageBucket": "healthlens-942ea.firebasestorage.app"
         })
@@ -65,7 +66,7 @@ def build_model(num_classes):
     return model
 
 model = build_model(num_classes=len(CLASS_NAMES))
-checkpoint = torch.load(args.model_path, map_location=DEVICE)
+checkpoint = torch.load(args.model_path, map_location=DEVICE, weights_only=False)
 if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
     model.load_state_dict(checkpoint["model_state_dict"])
 else:
@@ -127,7 +128,7 @@ base_name = os.path.splitext(os.path.basename(image_path))[0]
 
 full_output = {
     "metadata": {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now().isoformat() + "Z",
         "model_path": os.path.abspath(args.model_path),
         "device": str(DEVICE),
     },
