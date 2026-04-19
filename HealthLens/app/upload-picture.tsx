@@ -1,12 +1,9 @@
-import { Text, View, StyleSheet, TextInput, Pressable, Image, useWindowDimensions, ScrollView} from "react-native";
+import { Text, View, StyleSheet, TextInput, Pressable, Image, useWindowDimensions, Platform, Alert} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from 'react';
-import {Stack, router} from "expo-router"
-import { InputField } from '@/src/components/ui/InputField';
-import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
+import {router} from "expo-router"
 import { SecondaryButton } from '@/src/components/ui/SecondaryButton';
 import { Screen } from '@/src/components/ui/Screen';
-import { SocialButton } from '@/src/components/ui/SocialButton';
-import { routes } from '@/src/constants/routes';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { spacing } from '@/src/theme';
 import * as LightTheme from '../src/theme/lightTheme';
@@ -19,32 +16,39 @@ import * as Sizes from '../src/theme/tokens/sizes';
 import * as Shadows from '../src/theme/tokens/shadows';
 import * as Gradients from '../src/theme/tokens/gradients';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef } from "react";
-
+import {useCameraPermissions } from "expo-camera";
+import PhotoList from "@/src/components/ui/PhotoList";
+import PhotoPreviewModal from "@/src/components/ui/PhotoPreview";
+import CameraCapture from "@/src/components/ui/CameraCapture";
 
 export default function UploadPicture() {
     const { width, height } = useWindowDimensions();
     const [photoUploaded, setPhotoUploaded] = useState(false);
     const theme = useAppTheme('light');
 
-    const isCompact = width < 390;
+    const isCompact = width < 350;
     const isWide = width >= 900;
 
-    const cameraRef = useRef<any>(null);
     const [permission, requestPermission] = useCameraPermissions();
     const [showCamera, setShowCamera] = useState(false);
+    const [photos, setPhotos] = useState<any[]>([]);
     const [photo, setPhoto] = useState<any>(null);
+    const [showPreview, setShowPreview] = useState(false);
 
-    const takePhoto = async () => {
-        if (!cameraRef.current) return;
-    
-        const picture = await cameraRef.current.takePictureAsync();
-    
-        setPhoto(picture);
-        setPhotoUploaded(true);
-        setShowCamera(false);
-    };
+    if (showCamera) {
+        return (
+            <SafeAreaView style={{ flex: 1 }}>
+                <CameraCapture
+                    onCapture={(picture) => {
+                        setPhotos(prev => [...prev, picture]);
+                        setPhotoUploaded(true);
+                        setShowCamera(false);
+                    }}
+                    onClose={() => setShowCamera(false)}
+                />
+            </SafeAreaView>
+        );
+    }
     
     return (
         <Screen
@@ -62,28 +66,56 @@ export default function UploadPicture() {
                         resizeMode = "contain"
                     />
                     <View style={{justifyContent: 'center', flex: 1}}>
-                        <Text style={[styles.titleText, {fontSize: isCompact ? Typography.typography.size.subtitle : Typography.typography.size.title}]}>Upload a Picture</Text>
+                        <Text style={[styles.titleText, {fontSize: isCompact ? Typography.typography.size.subtitle : Typography.typography.size.title}]}>
+                            Upload a Picture
+                        </Text>
                         <Text style={styles.subtitleText}>
                             {"Scan your skin and see what's going on!"}
                         </Text>
                     </View>
                 </View>
 
-                {photoUploaded ? (
-                    <View></View>
-
-                ):(
-                    <View style={{flexDirection: "row", justifyContent: "center", margin: 10}}>
-                        <View style={[styles.imageAdd, Shadows.shadows.card, {width: Math.min(width * .87, 440), height: height * .45, justifyContent: "center", alignItems: "center"}]}>
-                            <Image 
-                                source={require('../assets/images/image-add.png')}
-                                style={{width: "44%", height: "50%"}}
-                                resizeMode = "contain"
-                            />
-                            <View style={{margin: 10, alignItems:'center'}}>
-                                <Text style={[styles.boldSubtitleText]}>No Photos Uploaded Yet</Text>
-                                <Text style={[styles.subtitleText]}>Add up to 5 photos of the affected area</Text>
-                            </View>
+                {photos.length > 0 ? (
+                    <View style={[
+                        styles.imageAdd, 
+                        Shadows.shadows.card, 
+                        {width: Math.min(width * .87, 440), 
+                        flex: 1, 
+                        minHeight: height * .45,
+                        alignItems: "center", 
+                        margin: Spacing.spacing.sm
+                        }]}
+                    >
+                        <PhotoList
+                            photos={photos}
+                            onSelect={(p) => {
+                                setPhoto(p);
+                                setShowPreview(true);
+                            }}
+                            onDelete={(index) =>
+                                setPhotos(prev => prev.filter((_, i) => i !== index))
+                            }
+                        />
+                    </View>
+                ) : (
+                    <View style={[
+                        styles.imageAdd, 
+                        Shadows.shadows.card, 
+                        {width: Math.min(width * .87, 440), 
+                        height: height * .45, 
+                        justifyContent: "center", 
+                        alignItems: "center", 
+                        margin: 10}
+                    ]}
+                    >
+                        <Image 
+                            source={require('../assets/images/image-add.png')}
+                            style={{width: "44%", height: "50%"}}
+                            resizeMode = "contain"
+                        />
+                        <View style={{margin: Spacing.spacing.sm, alignItems:'center'}}>
+                            <Text style={[styles.boldSubtitleText]}>No Photos Uploaded Yet</Text>
+                            <Text style={[styles.subtitleText]}>Add up to 5 photos of the affected area</Text>
                         </View>
                     </View>
                 )}
@@ -99,14 +131,35 @@ export default function UploadPicture() {
                                 await requestPermission();
                             }
                             setShowCamera(true);
-                        }}/>
-                    <SecondaryButton colors={Gradients.gradients.coral} style={{marginTop: Spacing.spacing.xs}} label="Choose From Library" theme={theme} onPress={() => router.push('/somewhere')} />
+                        }}
+                    />
+                    <SecondaryButton 
+                        colors={Gradients.gradients.coral} 
+                        style={{marginVertical: Spacing.spacing.xs}} 
+                        label="Choose From Library" 
+                        theme={theme} 
+                        onPress={() => router.push('/somewhere')} 
+                    />
                 </View>
 
-                {photoUploaded && (
-                    <PrimaryButton label="Analyze Photos" theme={theme} onPress={() => router.push('/somewhere')} />
+                {photos.length > 0 && (
+                    <SecondaryButton colors={Gradients.gradients.green} 
+                        style={{marginVertical: Spacing.spacing.xs}} 
+                        label="Analyze Photos" 
+                        theme={theme} 
+                        onPress={() => router.push('/somewhere')}
+                    />
                 )}
             </View>
+
+            <PhotoPreviewModal
+                visible={showPreview}
+                photo={photo}
+                onClose={() => { 
+                    setPhoto(null);
+                    setShowPreview(false)
+                }}
+            />
         </Screen>
     );
 }
@@ -161,5 +214,4 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.palette.slate160,
         borderRadius: Radius.radius.lg,
     },
-
 })

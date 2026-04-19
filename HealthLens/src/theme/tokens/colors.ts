@@ -6,6 +6,8 @@ export const palette = {
   blue600: '#5187DD',
   navy700: '#223A79',
   navy800: '#24336B',
+  navy900: '#172361',
+  red500: '#EC0A0A',
   slate50: '#F7F9FD',
   slate100: '#EEF2F8',
   slate150: '#E9EDF5',

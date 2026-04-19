@@ -10,6 +10,7 @@ export const sizes = {
   iconSm: 16,
   iconMd: 18,
   iconLg: 60,
+  iconXl: 80,
   logoMarkSize: 44,
   headerLogoMarkSize: 36,
 } as const;
