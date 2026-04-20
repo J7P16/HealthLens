@@ -67,3 +67,23 @@ export const fetchResult = async (imageId: string, uid:string): Promise<Firebase
         if (!doc.exists) throw new Error('Image not found.');
         return doc.data() as DocumentData;
 }
+
+export const saveQuizAnswers = async (uid: string, answers: {
+    age: number;
+    gender: string;
+    height: string;
+    weight: number;
+    countryOfOrigin: string;
+    allergies: string;
+    currentPrescription: string;
+    medHistory: string;
+}): Promise<void> => {
+    await admin.firestore()
+        .collection('users')
+        .doc(uid)
+        .set({
+            ...answers,
+            quizCompletedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true }); 
+        // merge: true means it won't wipe out other fields already on the user doc
+}

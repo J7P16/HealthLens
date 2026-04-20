@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseAuth } from "../middleware/verifyFirebaseAuth.js";
+import { submitQuiz } from "../controllers/quizController.js";
 
 const router = Router();
 
@@ -38,5 +39,7 @@ router.get("/classify/:jobId", (req, res) => {
     jobId: req.params.jobId,
   });
 });
+
+router.post("/quiz", submitQuiz);
 
 export default router;
