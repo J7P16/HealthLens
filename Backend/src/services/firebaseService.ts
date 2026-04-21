@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
 import { DocumentData } from "firebase-admin/firestore";
-import OpenAI from "openai";
 
 
 /*Creating bussiness side logic where most of the API workload
@@ -68,24 +67,3 @@ export const fetchResult = async (imageId: string, uid:string): Promise<Firebase
         if (!doc.exists) throw new Error('Image not found.');
         return doc.data() as DocumentData;
 }
-
-//Retrieving external sources for disease information
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-export const fetchDiseaseSources = async (class_name: string): Promise<string[]> => {
-    const response = await openai.chat.completions.create({
-        model: "gpt-4o-search-preview",
-        messages: [
-            {
-                role: "user",
-                content: `Find 3-5 authoritative medical web sources (Mayo Clinic, NIH, WebMD, CDC, etc.) 
-                          that explain "${class_name}". Return ONLY a JSON array of URLs, nothing else. 
-                          Example: ["https://...", "https://..."]`
-            }
-        ],
-    });
-
-    const text = response.choices[0].message.content ?? "[]";
-    return JSON.parse(text.replace(/```json|```/g, "").trim());
-};

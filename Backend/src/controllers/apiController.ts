@@ -1,6 +1,6 @@
 import {Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { saveImage, fetchUser, fetchResult, fetchDiseaseSources} from '../services/firebaseService.js';
+import { saveImage, fetchUser, fetchResult } from '../services/firebaseService.js';
 // I for see a future issue here as the path should .ts and not .js so will keep an eye on that.
 import { error } from 'node:console';
 
@@ -44,69 +44,19 @@ export const getUser = async (req: Request, res: Response): Promise <void> => {
     }
 }
 
-// export const getResult = async (req: Request<ImageParams>, res: Response): Promise <void> => {
-//     try {
-//         if (!req.firebaseUser) {
-//             res.status(401).json({ error: 'Unauthorized' });
-//             return;
-//         }
-//         const data = await fetchResult(req.params.imageId, req.firebaseUser.uid);
-//         if (data.status === 'pending') {
-//             res.status(202).json({status: 'pending'});
-//             return;
-//         }
-//         res.status(200).json({status: 'done', result: data.result});
-//     } catch (err){
-//         res.status(500).json({error: (err as Error).message });
-//     }
-// }
-
-//This adds disease links to result
-
-export const getResult = async (req: Request<ImageParams>, res: Response): Promise<void> => {
+export const getResult = async (req: Request<ImageParams>, res: Response): Promise <void> => {
     try {
         if (!req.firebaseUser) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
         }
-
         const data = await fetchResult(req.params.imageId, req.firebaseUser.uid);
-
         if (data.status === 'pending') {
-            res.status(202).json({ status: 'pending' });
+            res.status(202).json({status: 'pending'});
             return;
         }
-
-        let sources: string[] = [];
-        if (data.result?.class_name) {
-            sources = await fetchDiseaseSources(data.result.class_name);
-        }
-
-        res.status(200).json({ status: 'done', result: data.result, sources });
-    } catch (err) {
-        res.status(500).json({ error: (err as Error).message });
+        res.status(200).json({status: 'done', result: data.result});
+    } catch (err){
+        res.status(500).json({error: (err as Error).message });
     }
-};
-
-//This gets just disease links 
-
-export const getSources = async (req: Request<ImageParams>, res: Response): Promise<void> => {
-    try {
-        if (!req.firebaseUser) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
-        }
-
-        const data = await fetchResult(req.params.imageId, req.firebaseUser.uid);
-
-        if (!data.result?.class_name) {
-            res.status(404).json({ error: 'No diagnosis found for this image yet.' });
-            return;
-        }
-
-        const sources = await fetchDiseaseSources(data.result.class_name);
-        res.status(200).json({ class_name: data.result.class_name, sources });
-    } catch (err) {
-        res.status(500).json({ error: (err as Error).message });
-    }
-};
+}
