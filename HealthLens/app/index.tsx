@@ -1,103 +1,166 @@
-import { Text, View, StyleSheet, TextInput, Button, } from "react-native";
-import { Link, router } from 'expo-router';
-import React, { useState } from 'react';
-// Auth Imports
-import { auth } from '../firebaseConfig';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  Text,
+  View,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  Image,
+  useWindowDimensions,
+  ScrollView,
+} from "react-native";
+import globalStyles from "./styles/globalStyles";
+import { useFonts } from "expo-font";
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+import { Stack, router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "./hooks/authHooks";
 
-export default function Index() {
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const signIn = async () => {
-    try {
-      const user = await signInWithEmailAndPassword(auth, email, password);
-      if (user) router.push('/(tabs)/Diagnose');
-    } catch (error: any) {
-      console.log(error)
-      alert('Sign in failed: ' + error.message);
-    }
-  }
-
+export default function SignIn() {
+  const { signInWithPassword, signInWithGoogle, loading, error } = useAuth("/(tabs)/Diagnose");
+  const { width, height } = useWindowDimensions();
+  const [fontsLoaded] = useFonts({
+    Monda: require("./styles/fonts/Monda.ttf"),
+  });
   return (
-    <View style={styles.overallContainer}>
-      <View style={styles.centerContent}>
-        <Text style={styles.header}>HealthLens</Text>
-        <Text style={styles.signIn}>Sign In</Text>
-        <View style={styles.loginBox}>
+    <ScrollView contentContainerStyle={[globalStyles.scrollContent]} style={globalStyles.bgColor}>
+      <Stack.Screen options={{ headerShown: false }} />
+      {""}
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoComplete="email"
-          ></TextInput>
+      <Image
+        source={require("../assets/images/healthlens-logo.png")}
+        style={[{ width: width * 0.65, height: height * 0.3, margin: "7%" }]}
+        resizeMode="contain"
+      />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            autoComplete="current-password"
-          ></TextInput>
+      <View style={[globalStyles.card, { width: width * 0.85, height: height * 0.9, margin: "5%" }]}>
+        <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
+          <View>
+            <Text style={{ color: "#ADADAD", fontSize: RFValue(16, height), fontFamily: "Monda" }}>
+              Email
+            </Text>
+            <View style={[globalStyles.input]}>
+              <Image
+                source={require("../assets/images/mailicon.png")}
+                style={styles.icon}
+                resizeMode="contain"
+              />
+              <TextInput
+                placeholder="Your Email"
+                style={{ outlineStyle: "none", color: "#9C9C9C", fontFamily: "Monda" }}
+              ></TextInput>
+            </View>
+          </View>
 
-          <Button
-            title="Sign in"
-            onPress={signIn}
-          ></Button>
-        </View>
+          <View>
+            <Text style={{ color: "#ADADAD", fontSize: RFValue(16, height), fontFamily: "Monda" }}>
+              Password
+            </Text>
+            <View style={[globalStyles.input]} resizeMode="contain">
+              <Image
+                source={require("../assets/images/lockicon.png")}
+                style={styles.icon}
+                resizeMode="contain"
+              />
+              <TextInput
+                placeholder="Your Password"
+                style={{ outlineStyle: "none", color: "#9C9C9C", fontFamily: "Monda" }}
+              ></TextInput>
+            </View>
+            <Pressable>
+              <Text
+                style={{
+                  fontFamily: "Monda",
+                  fontSize: RFValue(10, height),
+                  color: "#9C9C9C",
+                  textAlign: "right",
+                  marginHorizontal: "3%",
+                }}
+              >
+                Forgot Password?
+              </Text>
+            </Pressable>
+          </View>
+
+          <Pressable style={{ flexDirection: "row", justifyContent: "center" }}>
+            <LinearGradient
+              colors={["#4BA8E6", "#5187DD"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={globalStyles.button}
+            >
+              <Text style={{ color: "#FFFFFF", fontFamily: "Monda" }}>Log In</Text>
+            </LinearGradient>
+          </Pressable>
+        </ScrollView>
       </View>
 
-      <View style={styles.footer}>
-        <Link href={'/forgot_password'} style={styles.help}>Forgot password?</Link>
-        <Link href={'/create_account'} style={styles.help}>No account? Create one!</Link>
+      <View style={styles.line}>
+        <View style={{ flex: 1, height: 1, backgroundColor: "#7C7C7C" }} />
+        <Text style={{ marginHorizontal: 10, color: "#7C7C7C", fontFamily: "Monda" }}>Or</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: "#7C7C7C" }} />
       </View>
-    </View>
+
+      <Pressable style={[styles.continue]} onPress={() => signInWithGoogle()}>
+        <Image source={require("../assets/images/googleicon.png")} style={styles.icon} resizeMode="contain" />
+        <Text style={{ color: "#9C9C9C" }}>Continue with Google</Text>
+      </Pressable>
+
+      <Pressable style={[styles.continue]}>
+        <Image source={require("../assets/images/appleicon.png")} style={styles.icon} resizeMode="contain" />
+        <Text style={{ color: "#9C9C9C" }}>
+          Continue with Apple <span>{"{ coming soon }"}</span>
+        </Text>
+      </Pressable>
+
+      <View style={{ alignItems: "center", margin: "6%" }}>
+        <Text style={{ color: "#7C7C7C", fontFamily: "Monda", fontSize: RFValue(12, height) }}>
+          New here? Create an account!
+        </Text>
+        <Pressable
+          onPress={() => router.push("/create_account")}
+          style={{ flexDirection: "row", justifyContent: "center", width: width * 0.8 }}
+        >
+          <LinearGradient
+            colors={["#4BA8E6", "#5187DD"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[globalStyles.button, { margin: "1%", height: height * 0.08 }]}
+          >
+            <Text style={{ color: "#FFFFFF", fontFamily: "Monda" }}>Create Account</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  overallContainer: {
-    flex: 1,
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 5,
   },
 
-  centerContent: {
-    flex: 1,
-    justifyContent: "center",
+  line: {
+    flexDirection: "row",
     alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 10,
+    marginVertical: 50,
   },
 
-  header: {
-    fontSize: 30,
-  },
-
-  loginBox: {
-    padding: 10,
-    width: '65%',
-  },
-
-  signIn: {
-    fontSize: 25,
-  },
-
-  input: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-  },
-
-  footer: {
+  continue: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    shadowColor: "#93A0BA",
+    shadowRadius: 5,
+    shadowOpacity: 1,
+    shadowOffset: { width: 0, height: 0 },
+    padding: "2%",
+    width: "70%",
+    margin: "1%",
+    flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 50,
+    alignContent: "center",
   },
-
-  help: {
-    fontSize: 15,
-    padding: 10,
-    fontWeight: "bold",
-  }
-})
+});
