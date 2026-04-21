@@ -5,7 +5,7 @@ import { collection, addDoc, getDocs, query, orderBy, Timestamp } from "firebase
 export const uploadImageToFirebase = async (uri: string) => {
     try {
         /** Converting uri into blob. uri is the string the points to the location of where the picture is being stored.
-         * Blob is the actual raw image data. This is done since firebase can't just use the uri. */ 
+         * Blob is the actual raw image data. This is done since firebase can't just use the uri. */
         const response = await fetch(uri);
         const blob = await response.blob();
 
@@ -33,7 +33,7 @@ export const uploadImageToFirebase = async (uri: string) => {
             docId: docRef.id,
         };
     } catch (error) {
-        console.error ('Error uploading image:', error);
+        console.error('Error uploading image:', error);
         return {
             success: false,
             error: error,
@@ -42,7 +42,7 @@ export const uploadImageToFirebase = async (uri: string) => {
 };
 
 export const getImagesFromFirebase = async () => {
-    try{
+    try {
         const q = query(collection(db, 'diagnoses'), orderBy('timestamp', 'desc'))
         const querySnapshot = await getDocs(q);
 
@@ -56,4 +56,28 @@ export const getImagesFromFirebase = async () => {
         console.error('Error fetching images:', error);
         return [];
     }
+};
+
+export const uploadAndDiagnose = async (uri: string) => {
+    const uploadResult = await uploadImageToFirebase(uri);
+
+    if (!uploadResult.success) return uploadResult;
+
+    const firebasePath = uploadResult.downloadURL
+        .split('/o/')[1]
+        .split('?')[0]
+        .replace(/%2F/g, '/');
+
+    const response = await fetch('http://localhost:3000/api/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firebasePath })
+    });
+
+    const result = await response.json();
+
+    return {
+        ...uploadResult,
+        diagnosis: result
+    };
 };
