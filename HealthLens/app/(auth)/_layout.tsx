@@ -6,7 +6,7 @@ import { useAuth } from "@/src/hooks/authHooks";
 export default function AuthLayout() {
   const theme = useAppTheme("light");
 
-  useAuth("/(tabs)/diagnose");
+  useAuth("/(tabs)/ProfileScreen");
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>

@@ -16,7 +16,7 @@ import { AppText } from "@/src/components/ui/AppText";
 import { useAuth } from "@/src/hooks/authHooks";
 
 export default function SignInScreen() {
-  const { signInWithPassword, signInWithGoogle, loading, error } = useAuth("/(tabs)/diagnose");
+  const { signInWithPassword, signInWithGoogle, loading, error } = useAuth("/(tabs)/ProfileScreen");
   const theme = useAppTheme("light");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
