@@ -1,31 +1,30 @@
-import React, { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
-import { AuthCard } from '@/src/components/auth/AuthCard';
-import { AuthHeader } from '@/src/components/auth/AuthHeader';
-import { BackButton } from '@/src/components/ui/BackButton';
-import { InputField } from '@/src/components/ui/InputField';
-import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
-import { Screen } from '@/src/components/ui/Screen';
-import { routes } from '@/src/constants/routes';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { spacing } from '@/src/theme';
+import React, { useMemo, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { AuthCard } from "@/src/components/auth/AuthCard";
+import { AuthHeader } from "@/src/components/auth/AuthHeader";
+import { BackButton } from "@/src/components/ui/BackButton";
+import { InputField } from "@/src/components/ui/InputField";
+import { PrimaryButton } from "@/src/components/ui/PrimaryButton";
+import { Screen } from "@/src/components/ui/Screen";
+import { routes } from "@/src/constants/routes";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { spacing } from "@/src/theme";
+import { useAuth } from "@/src/hooks/authHooks";
 
 export default function SetNewPasswordScreen() {
-  const theme = useAppTheme('light');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const theme = useAppTheme("light");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { code } = useLocalSearchParams<{ code: string }>(); // ← Firebase sends a code in the reset link
+  const { resetPassword, loading, error } = useAuth("/(auth)/password-reset-success");
 
   const canSubmit = useMemo(() => {
     return password.trim().length > 0 && confirmPassword.trim().length > 0;
   }, [password, confirmPassword]);
 
   return (
-    <Screen
-      theme={theme}
-      scroll
-      contentContainerStyle={styles.screenContent}
-    >
+    <Screen theme={theme} scroll contentContainerStyle={styles.screenContent}>
       <View style={styles.content}>
         <View style={styles.pageTop}>
           <BackButton theme={theme} onPress={() => router.back()} />
@@ -61,8 +60,8 @@ export default function SetNewPasswordScreen() {
               <PrimaryButton
                 theme={theme}
                 label="Update Password"
-                onPress={() => router.push(routes.passwordResetSuccess)}
-                disabled={!canSubmit}
+                onPress={() => resetPassword(code, password, confirmPassword)} // ← wired up
+                disabled={!canSubmit || loading}
               />
             </View>
           </AuthCard>
@@ -79,9 +78,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   content: {
-    width: '100%',
+    width: "100%",
     maxWidth: 460,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   pageTop: {
     marginBottom: spacing.xl,

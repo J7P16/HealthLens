@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
-import { AuthHeader } from '@/src/components/auth/AuthHeader';
-import { VerificationCodeInput } from '@/src/components/auth/VerificationCodeInput';
-import { BackButton } from '@/src/components/ui/BackButton';
-import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
-import { Screen } from '@/src/components/ui/Screen';
-import { TextLink } from '@/src/components/ui/TextLink';
-import { routes } from '@/src/constants/routes';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { spacing } from '@/src/theme';
-import { AppText } from '@/src/components/ui/AppText';
+import React, { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { AuthHeader } from "@/src/components/auth/AuthHeader";
+import { VerificationCodeInput } from "@/src/components/auth/VerificationCodeInput";
+import { BackButton } from "@/src/components/ui/BackButton";
+import { PrimaryButton } from "@/src/components/ui/PrimaryButton";
+import { Screen } from "@/src/components/ui/Screen";
+import { TextLink } from "@/src/components/ui/TextLink";
+import { routes } from "@/src/constants/routes";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { spacing } from "@/src/theme";
+import { AppText } from "@/src/components/ui/AppText";
 
 export default function CheckEmailScreen() {
-  const theme = useAppTheme('light');
-  const [code, setCode] = useState('');
+  const theme = useAppTheme("light");
+  const [code, setCode] = useState("");
+  const { email } = useLocalSearchParams<{ email: string }>();
 
   return (
     <Screen theme={theme} scroll contentContainerStyle={styles.screenContent}>
@@ -26,7 +27,7 @@ export default function CheckEmailScreen() {
         <AuthHeader
           theme={theme}
           title="Check your email"
-          subtitle="We sent a reset link to johndoe@email.com enter 5 digit code that mentioned in the email"
+          subtitle={`We sent a reset link to ${email}. Enter the 5-digit code mentioned in the email.`}
         />
 
         <View style={styles.codeWrap}>
@@ -55,17 +56,17 @@ export default function CheckEmailScreen() {
 const styles = StyleSheet.create({
   screenContent: {
     flexGrow: 1,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     paddingTop: spacing.xxl,
   },
   content: {
-    width: '100%',
+    width: "100%",
     maxWidth: 460,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   pageTop: {
     marginBottom: spacing.xl,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   codeWrap: {
     marginTop: spacing.xl,
@@ -75,10 +76,10 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   resendRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    flexWrap: "wrap",
     gap: spacing.xxs,
   },
 });

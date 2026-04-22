@@ -3,7 +3,8 @@ import { CameraCapturedPicture } from "expo-camera";
 import React, { useState } from "react";
 import { TouchableOpacity, Image, StyleSheet, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { uploadImageToFirebase } from "@/uploadImage";
+import { uploadUserImage } from "@/src/hooks/imageHooks"; // ← update path to wherever imageHooks lives
+import { useUser } from "@/src/hooks/authHooks";
 
 const PhotoPreviewSection = ({
   photo,
@@ -15,15 +16,22 @@ const PhotoPreviewSection = ({
   onUploadComplete: () => void;
 }) => {
   const [uploading, setUploading] = useState(false);
+  const { user } = useUser(); // ← get authenticated user
 
   const handleUpload = async () => {
     if (uploading) return;
+
+    if (!user) {
+      Alert.alert("Error", "You must be logged in to upload images.");
+      return;
+    }
+
     setUploading(true);
 
     try {
-      await uploadImageToFirebase(photo.uri);
+      await uploadUserImage(user.uid, photo.uri); // ← wired up
       Alert.alert("Success", "Image uploaded successfully");
-      onUploadComplete(); 
+      onUploadComplete();
     } catch {
       Alert.alert("Error", "Upload failed");
       setUploading(false);
@@ -33,11 +41,7 @@ const PhotoPreviewSection = ({
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.box}>
-        <Image
-          source={{ uri: photo.uri }}
-          style={styles.previewContainer}
-          resizeMode="contain"
-        />
+        <Image source={{ uri: photo.uri }} style={styles.previewContainer} resizeMode="contain" />
       </View>
 
       <View style={styles.buttonContainer}>

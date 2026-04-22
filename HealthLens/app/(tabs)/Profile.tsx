@@ -1,23 +1,31 @@
-import { Text, View, StyleSheet, Image, ScrollView, Dimensions, StatusBar, TouchableOpacity } from "react-native";
-import {router} from 'expo-router';
+import {
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Dimensions,
+  StatusBar,
+  TouchableOpacity,
+} from "react-native";
+import { router } from "expo-router";
 export default function Profile() {
-  const screenHeight = Dimensions.get('window').height;
+  const screenHeight = Dimensions.get("window").height;
   const handleSettingsPress = () => {
-    router.push('/Settings');
-  }
+    router.push("/Settings");
+  };
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={handleSettingsPress} style={styles.topBar}>
-        <Image
-        style={styles.settingPng}
-        source={require('../../assets/images/settings/setting.png')}
-        />
+        <Image style={styles.settingPng} source={require("@/src/assets/images/settings/setting.png")} />
       </TouchableOpacity>
       <View style={styles.profileSection}>
         <Text style={styles.title}>User's Name</Text>
-        <Image 
+        <Image
           style={styles.profileImage}
-          source={{uri: 'https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvcHUyMzMxNjM2LWltYWdlLTAxLXJtNTAzXzMtbDBqOXFrNnEucG5n.png'}}
+          source={{
+            uri: "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvcHUyMzMxNjM2LWltYWdlLTAxLXJtNTAzXzMtbDBqOXFrNnEucG5n.png",
+          }}
         />
       </View>
 
@@ -39,11 +47,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   profileSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
   },
   profileImage: {
@@ -55,45 +63,45 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   historySection: {
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
   },
   historyTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 10,
   },
   historyList: {
-    backgroundColor: '#E0D7D7',
-    width: '100%',
+    backgroundColor: "#E0D7D7",
+    width: "100%",
     borderRadius: 8,
     padding: 10,
   },
   component: {
-    backgroundColor: '#DEDCDC',
-    width: '100%',
+    backgroundColor: "#DEDCDC",
+    width: "100%",
     padding: 20,
     borderRadius: 4,
     marginBottom: 10,
   },
   componentText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   settingPng: {
     height: 25,
     width: 25,
-    position: 'absolute'
+    position: "absolute",
   },
   topBar: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-start',
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "flex-start",
     paddingTop: 50,
     marginBottom: 20,
-  }
+  },
 });

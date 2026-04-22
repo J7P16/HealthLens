@@ -1,37 +1,38 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
-import { AuthCard } from '@/src/components/auth/AuthCard';
-import { AuthFooter } from '@/src/components/auth/AuthFooter';
-import { AuthLogo } from '@/src/components/auth/AuthLogo';
-import { Divider } from '@/src/components/ui/Divider';
-import { InputField } from '@/src/components/ui/InputField';
-import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
-import { Screen } from '@/src/components/ui/Screen';
-import { SocialButton } from '@/src/components/ui/SocialButton';
-import { routes } from '@/src/constants/routes';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { spacing } from '@/src/theme';
+// app/(auth)/create-account.tsx
+import React, { useState } from "react";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { router } from "expo-router";
+import { AuthCard } from "@/src/components/auth/AuthCard";
+import { AuthFooter } from "@/src/components/auth/AuthFooter";
+import { AuthLogo } from "@/src/components/auth/AuthLogo";
+import { Divider } from "@/src/components/ui/Divider";
+import { InputField } from "@/src/components/ui/InputField";
+import { PrimaryButton } from "@/src/components/ui/PrimaryButton";
+import { Screen } from "@/src/components/ui/Screen";
+import { SocialButton } from "@/src/components/ui/SocialButton";
+import { routes } from "@/src/constants/routes";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { spacing } from "@/src/theme";
+import { useAuth } from "@/src/hooks/authHooks";
 
 export default function CreateAccountScreen() {
-  const theme = useAppTheme('light');
+  const theme = useAppTheme("light");
   const { width } = useWindowDimensions();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const isCompact = width < 390;
+  const { createAccount, loading, error } = useAuth("/(tabs)/diagnose");
+
   const isWide = width >= 900;
 
   return (
     <Screen
       theme={theme}
       scroll
-      contentContainerStyle={[
-        styles.screenContent,
-        isWide && styles.screenContentWide,
-      ]}
+      contentContainerStyle={[styles.screenContent, isWide && styles.screenContentWide]}
     >
       <View style={styles.content}>
         <AuthLogo theme={theme} showDots />
@@ -65,7 +66,20 @@ export default function CreateAccountScreen() {
               icon="lock"
               secureTextEntry
             />
-            <PrimaryButton theme={theme} label="Create Account" />
+            <InputField
+              theme={theme}
+              label="Confirm Password"
+              placeholder="••••••"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              icon="lock"
+              secureTextEntry
+            />
+            <PrimaryButton
+              theme={theme}
+              label="Create Account"
+              onPress={() => createAccount(email, password, confirmPassword, name)}
+            />
           </View>
         </AuthCard>
 
@@ -79,7 +93,7 @@ export default function CreateAccountScreen() {
             theme={theme}
             prefix="Already have an account?"
             action="Sign In"
-            onPress={() => router.push(routes.signIn)}
+            onPress={() => router.back()}
           />
         </View>
       </View>
@@ -90,28 +104,18 @@ export default function CreateAccountScreen() {
 const styles = StyleSheet.create({
   screenContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   screenContentWide: {
     paddingVertical: spacing.xxl,
   },
   content: {
-    width: '100%',
+    width: "100%",
     maxWidth: 460,
-    alignSelf: 'center',
-  },
-  contentWide: {
-    maxWidth: 520,
+    alignSelf: "center",
   },
   formFields: {
     gap: spacing.md,
-  },
-  passwordBlock: {
-    gap: spacing.xs,
-  },
-  forgotLinkWrap: {
-    alignItems: 'flex-end',
-    marginTop: -2,
   },
   authExtras: {
     marginTop: spacing.xl,
@@ -119,9 +123,5 @@ const styles = StyleSheet.create({
   },
   socialGroup: {
     gap: spacing.sm,
-  },
-  bottomCta: {
-    gap: spacing.md,
-    marginTop: spacing.sm,
   },
 });

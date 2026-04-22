@@ -1,20 +1,22 @@
 import {
+  confirmPasswordReset,
   createUserWithEmailAndPassword,
   getAuth,
-  getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  User as FirebaseUser,
 } from "firebase/auth";
-import { db } from "../config/firebaseConfig";
+import { db } from "../../app/config/firebaseConfig";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { RelativePathString, router } from "expo-router";
 import { useEffect, useState } from "react";
 
-// User interface for Firestore user documents, can be expanded with additional fields as needed
-export interface User {
+// Firestore user profile document
+export interface UserProfile {
   email: string;
   age: number;
   allergies: string[];
@@ -54,14 +56,13 @@ export const useAuth = (redirect: String) => {
     });
 
     return () => unsubscribe();
-  }, []); // runs once on mount
+  }, []);
 
-  const createUserInFirestore = async (user: any) => {
+  const createUserInFirestore = async (user: FirebaseUser) => {
     if (user) {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
-      // if user doesn't exist in Firestore, create a new document for them with default fields only
       if (!userSnap.exists()) {
         await setDoc(userRef, {
           uid: user.uid,
@@ -75,7 +76,6 @@ export const useAuth = (redirect: String) => {
     }
   };
 
-  // Sign in with email and password must pass in email and password as parameters
   const signInWithPassword = async (email: string, password: string) => {
     setLoading(true);
 
@@ -97,11 +97,11 @@ export const useAuth = (redirect: String) => {
     setLoading(false);
   };
 
-  const createAccount = async (email: string, password: string, confirmPassword: string) => {
+  const createAccount = async (email: string, password: string, confirmPassword: string, name: string) => {
     setLoading(true);
 
-    if (!email || !password || !confirmPassword) {
-      setError("Email, password, and confirm password are required.");
+    if (!email || !password || !confirmPassword || !name) {
+      setError("All fields are required.");
       setLoading(false);
       return;
     }
@@ -111,12 +111,17 @@ export const useAuth = (redirect: String) => {
       setLoading(false);
       return;
     }
+
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
-        // Signed up
         const user = userCredential.user;
-        await createUserInFirestore(user);
-        // ...
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          name: name,
+          createdAt: serverTimestamp(),
+        });
+        router.push(redirect as RelativePathString);
       })
       .catch((error) => {
         setError(error.message || "An error occurred during account creation.");
@@ -128,7 +133,7 @@ export const useAuth = (redirect: String) => {
   const signInWithGoogle = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider) // Switch to signInWithRedirect if you want to support mobile browsers that block popups
+    signInWithPopup(auth, provider)
       .then(async (result) => {
         const user = result.user;
         await createUserInFirestore(user);
@@ -143,9 +148,7 @@ export const useAuth = (redirect: String) => {
   const signOutHook = async () => {
     setLoading(true);
     signOut(auth)
-      .then(() => {
-        // Sign-out successful.
-      })
+      .then(() => {})
       .catch((error) => {
         setError(error.message || "An error occurred during sign-out.");
       });
@@ -153,12 +156,7 @@ export const useAuth = (redirect: String) => {
     setLoading(false);
   };
 
-  /* Placeholder for setting additional account info after sign-up, such as age, allergies, etc.
-    can be used as a generic setter for any fields in the User interface, but for better type safety and developer experience,
-    @param any null fields will be ignored and not updated in Firestore
-  */
-  const setAccountInfo = async (userData: User) => {
-    // Implementation placeholder
+  const setAccountInfo = async (userData: UserProfile) => {
     if (!auth.currentUser) {
       setError("User not authenticated.");
       return;
@@ -168,5 +166,76 @@ export const useAuth = (redirect: String) => {
     await setDoc(userRef, userData, { merge: true });
   };
 
-  return { createAccount, signInWithPassword, signInWithGoogle, signOutHook, loading, error };
+  const forgotPassword = async (email: string) => {
+    setLoading(true);
+    if (!email) {
+      setError("Email is required.");
+      setLoading(false);
+      return;
+    }
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        router.push(redirect as RelativePathString);
+      })
+      .catch((error) => {
+        setError(error.message || "An error occurred sending the reset email.");
+      });
+    setLoading(false);
+  };
+
+  const resetPassword = async (code: string, newPassword: string, confirmPassword: string) => {
+    setLoading(true);
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+    confirmPasswordReset(auth, code, newPassword)
+      .then(() => {
+        router.push(redirect as RelativePathString);
+      })
+      .catch((error) => {
+        setError(error.message || "An error occurred resetting your password.");
+      });
+    setLoading(false);
+  };
+
+  return {
+    createAccount,
+    signInWithPassword,
+    signInWithGoogle,
+    signOutHook,
+    forgotPassword,
+    resetPassword,
+    setAccountInfo,
+    loading,
+    error,
+  };
+};
+
+export const useUser = () => {
+  const auth = getAuth();
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          setDisplayName(userSnap.data().name);
+        }
+      } else {
+        setUser(null);
+        setDisplayName(null);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return { user, displayName, loading };
 };

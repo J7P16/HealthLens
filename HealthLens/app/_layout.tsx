@@ -1,4 +1,5 @@
-import { Stack } from "expo-router";
+// app/_layout.tsx
+import { Slot } from "expo-router";
 import { useFonts } from "expo-font";
 import { ActivityIndicator, View } from "react-native";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
@@ -24,15 +25,5 @@ export default function RootLayout() {
     );
   }
 
-  return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
-      <Stack.Screen name="sign-in" />
-      <Stack.Screen name="create-account" />
-      <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="check-email" />
-      <Stack.Screen name="set-new-password" />
-      <Stack.Screen name="password-reset-success" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
-  );
+  return <Slot />;
 }
