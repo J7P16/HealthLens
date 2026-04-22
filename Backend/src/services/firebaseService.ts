@@ -89,3 +89,22 @@ export const fetchDiseaseSources = async (class_name: string): Promise<string[]>
     const text = response.choices[0].message.content ?? "[]";
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 };
+export const saveQuizAnswers = async (uid: string, answers: {
+    age: number;
+    gender: string;
+    height: string;
+    weight: number;
+    countryOfOrigin: string;
+    allergies: string;
+    currentPrescription: string;
+    medHistory: string;
+}): Promise<void> => {
+    await admin.firestore()
+        .collection('users')
+        .doc(uid)
+        .set({
+            ...answers,
+            quizCompletedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true }); 
+        // merge: true means it won't wipe out other fields already on the user doc
+}
