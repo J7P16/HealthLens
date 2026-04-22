@@ -217,6 +217,7 @@ export const useUser = () => {
   const auth = getAuth();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -226,7 +227,7 @@ export const useUser = () => {
         const userRef = doc(db, "users", firebaseUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setDisplayName(userSnap.data().name);
+          setProfile(userSnap.data() as UserProfile)
         }
       } else {
         setUser(null);
@@ -237,5 +238,5 @@ export const useUser = () => {
     return () => unsubscribe();
   }, []);
 
-  return { user, displayName, loading };
+  return { user, profile, loading };
 };
