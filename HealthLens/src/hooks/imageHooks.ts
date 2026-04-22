@@ -44,8 +44,13 @@ export const uploadUserImage = async (userId: string, imageUri: string) => {
 
   const downloadURL = await getDownloadURL(storageRef);
 
-  await addDoc(collection(db, "users", userId, "images"), {
-    imageUri: downloadURL,
-    createdAt: serverTimestamp(),
-  });
+  try {
+    await addDoc(collection(db, "users", userId, "images"), {
+      imageUri: downloadURL,
+      createdAt: serverTimestamp(),
+    });
+    console.log("Firestore write success");
+  } catch (e) {
+    console.error("Firestore write failed:", e); // ← this will tell you exactly why
+  }
 };

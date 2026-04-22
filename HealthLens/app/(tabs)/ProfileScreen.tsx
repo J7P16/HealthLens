@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as Typography from "@/src/theme/tokens/typography";
 import {
   View,
@@ -10,13 +10,15 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useUser } from "@/src/hooks/authHooks";
-
+import { getUserImages } from "@/src/hooks/imageHooks";
+ 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
+ 
 export type Severity = "None" | "Low" | "Medium" | "High";
-
+ 
 export interface Diagnosis {
   id: string;
   title: string;
@@ -25,8 +27,9 @@ export interface Diagnosis {
   severity: Severity;
   tag: string;
   tagColor: string;
+  imageUri?: string;
 }
-
+ 
 export interface Achievement {
   id: string;
   title: string;
@@ -34,35 +37,29 @@ export interface Achievement {
   bg: string;
   icon: string;
 }
-
+ 
 export interface UserProfile {
   name: string;
   subtitle: string;
   email: string;
   memberSince: string;
 }
-
+ 
 type Tab = "scans" | "achievements";
-
-interface ProfileScreenProps {
-  user: UserProfile;
-  diagnoses: Diagnosis[];
-  achievements: Achievement[];
-}
-
+ 
 const SEVERITY_COLORS: Record<Severity, string> = {
   None:   "#4CAF50",
   Low:    "#4CAF50",
   Medium: "#FF9800",
   High:   "#F44336",
 };
-
+ 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
+ 
 const FONT = Typography.typography.fontFamily.regular;
 const BLUE = "#56A4E0CC";
 const BG   = "#EEF2F7";
-
+ 
 const cardShadow = {
   shadowColor:   "#93A0BA",
   shadowRadius:  20,
@@ -70,33 +67,25 @@ const cardShadow = {
   shadowOffset:  { width: 0, height: 0 },
   elevation:     6,
 } as const;
-
+ 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-
+ 
 function DiagnosisCard({ item }: { item: Diagnosis }): React.JSX.Element {
-  const sevColor = SEVERITY_COLORS[item.severity];
   return (
     <View style={styles.diagCard}>
-      <View style={styles.diagIconBox}>
-        <Text style={styles.diagIconText}>🔬</Text>
-      </View>
-      <View style={styles.diagInfo}>
-        <Text style={styles.diagTitle}>{item.title}</Text>
-        <Text style={styles.diagDate}>📅 {item.date}</Text>
-        <View style={styles.diagMeta}>
-          <Text style={styles.diagConf}>Confidence: {item.confidence}%</Text>
-          <View style={[styles.severityPill, { backgroundColor: sevColor + "22" }]}>
-            <Text style={[styles.severityText, { color: sevColor }]}>{item.severity}</Text>
-          </View>
+      {item.imageUri ? (
+        <Image source={{ uri: item.imageUri }} style={styles.diagImage} resizeMode="cover" />
+      ) : (
+        <View style={styles.diagIconBox}>
+          <Text style={styles.diagIconText}>🔬</Text>
         </View>
-      </View>
-      <View style={[styles.tagPill, { backgroundColor: item.tagColor }]}>
-        <Text style={styles.tagText}>{item.tag}</Text>
-      </View>
+      )}
+      <Text style={styles.diagTitle}>{item.title}</Text>
+      <Text style={styles.diagDate}>📅 {item.date}</Text>
     </View>
   );
 }
-
+ 
 function AchievementBadge({ item }: { item: Achievement }): React.JSX.Element {
   return (
     <View style={[styles.achievement, { backgroundColor: item.bg }]}>
@@ -106,16 +95,40 @@ function AchievementBadge({ item }: { item: Achievement }): React.JSX.Element {
     </View>
   );
 }
-
+ 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
-
-
+ 
 export default function ProfileScreen(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<Tab>("scans");
-  const { profile, loading } = useUser();
-
+  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+  const { user: firebaseUser, profile, loading } = useUser();
+ 
+  useEffect(() => {
+    if (!firebaseUser) return;
+    getUserImages(firebaseUser.uid).then((images) => {
+      setDiagnoses(
+        images.map((img) => ({
+          id:         img.id,
+          title:      "Skin Scan",
+          date:       img.createdAt?.toDate().toLocaleDateString("en-US", {
+            month: "short",
+            day:   "numeric",
+            year:  "numeric",
+          }) ?? "",
+          confidence: 0,
+          severity:   "None" as Severity,
+          tag:        "Collect",
+          tagColor:   "#5187DD",
+          imageUri:   img.uri,
+        }))
+      );
+    });
+  }, [firebaseUser]);
+ 
   if (loading || !profile) return <ActivityIndicator style={{ flex: 1 }} />;
-
+ 
+  const achievements: Achievement[] = [];
+ 
   const user: UserProfile = {
     name:        profile.name,
     subtitle:    `${profile.gender} · ${profile.age} yrs`,
@@ -125,12 +138,11 @@ export default function ProfileScreen(): React.JSX.Element {
       year:  "numeric",
     }),
   };
-   const diagnoses: Diagnosis[]     = [];
-  const achievements: Achievement[] = [];
+ 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-
+ 
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatar} />
@@ -143,10 +155,10 @@ export default function ProfileScreen(): React.JSX.Element {
           </View>
         </View>
       </View>
-
-      {/* Content card — fills the rest of the screen */}
+ 
+      {/* Content card */}
       <View style={styles.contentCard}>
-
+ 
         {/* Tabs */}
         <View style={styles.tabRow}>
           {(["scans", "achievements"] as Tab[]).map((tab) => (
@@ -162,18 +174,25 @@ export default function ProfileScreen(): React.JSX.Element {
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Diagnoses — scrollable, fills available space */}
+ 
+        {/* Diagnoses — 2 column grid */}
         {activeTab === "scans" && (
           <FlatList<Diagnosis>
             data={diagnoses}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => <DiagnosisCard item={item} />}
             contentContainerStyle={styles.listContent}
+            columnWrapperStyle={styles.columnWrap}
+            numColumns={2}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>No scans yet</Text>
+              </View>
+            }
           />
         )}
-
+ 
         {/* Achievements grid */}
         {activeTab === "achievements" && (
           <ScrollView
@@ -189,15 +208,15 @@ export default function ProfileScreen(): React.JSX.Element {
     </SafeAreaView>
   );
 }
-
+ 
 // ─── Styles ──────────────────────────────────────────────────────────────────
-
+ 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: BG,
   },
-
+ 
   /* Header */
   header: {
     backgroundColor: BLUE,
@@ -236,7 +255,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "rgba(255,255,255,0.8)",
   },
-
+ 
   /* Content card */
   contentCard: {
     flex: 1,
@@ -246,7 +265,7 @@ const styles = StyleSheet.create({
     ...cardShadow,
     overflow: "hidden",
   },
-
+ 
   /* Tabs */
   tabRow: {
     flexDirection: "row",
@@ -272,44 +291,61 @@ const styles = StyleSheet.create({
     color: "#9C9C9C",
   },
   tabTextActive: { color: BLUE, fontWeight: "700" },
-
-  /* Diagnoses */
+ 
+  /* Diagnoses grid */
   listContent: { padding: "4%", gap: 10 },
+  columnWrap:  { gap: 10 },
   diagCard: {
-    flexDirection: "row",
-    alignItems: "center",
+    flex: 1,
     backgroundColor: BG,
     borderRadius: 20,
-    padding: "3.5%",
-    gap: 12,
+    padding: 10,
+    alignItems: "center",
+    gap: 8,
+    ...cardShadow,
+    shadowRadius: 8,
+    shadowOpacity: 0.4,
+  },
+  diagImage: {
+    width: "100%",
+    height: 120,
+    borderRadius: 14,
   },
   diagIconBox: {
-    width: 44,
-    height: 44,
+    width: "100%",
+    height: 120,
     borderRadius: 14,
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    ...cardShadow,
-    shadowRadius: 8,
-    shadowOpacity: 0.5,
   },
-  diagIconText: { fontSize: 20 },
-  diagInfo: { flex: 1, gap: 3 },
+  diagIconText: { fontSize: 32 },
   diagTitle: {
     fontFamily: FONT,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: "#1E2A3A",
+    textAlign: "center",
   },
-  diagDate: { fontFamily: FONT, fontSize: 11, color: "#9C9C9C" },
-  diagMeta: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 },
-  diagConf: { fontFamily: FONT, fontSize: 11, color: "#6B7A8D" },
-  severityPill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 30 },
-  severityText: { fontFamily: FONT, fontSize: 10, fontWeight: "600" },
-  tagPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 30 },
-  tagText: { fontFamily: FONT, fontSize: 10, fontWeight: "700", color: "#fff" },
-
+  diagDate: {
+    fontFamily: FONT,
+    fontSize: 10,
+    color: "#9C9C9C",
+    textAlign: "center",
+  },
+ 
+  /* Empty state */
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontFamily: FONT,
+    fontSize: 14,
+    color: "#9C9C9C",
+  },
+ 
   /* Achievements */
   achieveGrid: { padding: "4%", flexDirection: "row", flexWrap: "wrap", gap: 12 },
   achievement: { width: "47%", borderRadius: 20, padding: "5%", gap: 4 },
