@@ -1,12 +1,12 @@
-import React from 'react';
-import { Image, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { spacing, typography } from '@/src/theme';
-import type { AppTheme } from '@/src/theme';
-import { AppText } from '@/src/components/ui/AppText';
+import React from "react";
+import { Image, StyleSheet, View, useWindowDimensions } from "react-native";
+import { spacing, typography } from "@/src/theme";
+import type { AppTheme } from "@/src/theme";
+import { AppText } from "@/src/components/ui/AppText";
 
-const logoMark = require('../../../assets/images/branding/logo-mark.png');
-const dotsLeft = require('../../../assets/images/branding/dots-left.png');
-const dotsRight = require('../../../assets/images/branding/dots-right.png');
+const logoMark = require("@/src/assets/images/branding/logo-mark.png");
+const dotsLeft = require("@/src/assets/images/branding/dots-left.png");
+const dotsRight = require("@/src/assets/images/branding/dots-right.png");
 
 type AuthLogoProps = {
   theme: AppTheme;
@@ -26,28 +26,24 @@ export function AuthLogo({ theme, showDots = true }: AuthLogoProps) {
           <Image
             source={dotsLeft}
             resizeMode="contain"
-            style={[
-              styles.dots,
-              isCompact && styles.dotsCompact,
-              isWide && styles.dotsWide,
-            ]}
+            style={[styles.dots, isCompact && styles.dotsCompact, isWide && styles.dotsWide]}
           />
         ) : (
           <View style={styles.sideSpacer} />
         )}
 
         <View style={styles.centerBlock}>
-          <AppText theme={theme} variant="body" style={[styles.welcomeText, { color: theme.colors.textMuted }]}>
+          <AppText
+            theme={theme}
+            variant="body"
+            style={[styles.welcomeText, { color: theme.colors.textMuted }]}
+          >
             Welcome to
           </AppText>
 
           <AppText
             theme={theme}
-            style={[
-              styles.wordmark,
-              isCompact && styles.wordmarkCompact,
-              isWide && styles.wordmarkWide,
-            ]}
+            style={[styles.wordmark, isCompact && styles.wordmarkCompact, isWide && styles.wordmarkWide]}
           >
             HEALTHLENS
           </AppText>
@@ -55,11 +51,7 @@ export function AuthLogo({ theme, showDots = true }: AuthLogoProps) {
           <Image
             source={logoMark}
             resizeMode="contain"
-            style={[
-              styles.logoMark,
-              isCompact && styles.logoMarkCompact,
-              isWide && styles.logoMarkWide,
-            ]}
+            style={[styles.logoMark, isCompact && styles.logoMarkCompact, isWide && styles.logoMarkWide]}
           />
         </View>
 
@@ -67,11 +59,7 @@ export function AuthLogo({ theme, showDots = true }: AuthLogoProps) {
           <Image
             source={dotsRight}
             resizeMode="contain"
-            style={[
-              styles.dots,
-              isCompact && styles.dotsCompact,
-              isWide && styles.dotsWide,
-            ]}
+            style={[styles.dots, isCompact && styles.dotsCompact, isWide && styles.dotsWide]}
           />
         ) : (
           <View style={styles.sideSpacer} />
@@ -83,31 +71,31 @@ export function AuthLogo({ theme, showDots = true }: AuthLogoProps) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginBottom: spacing.lg,
   },
   row: {
-    width: '100%',
+    width: "100%",
     maxWidth: 420,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.xxs,
   },
   centerBlock: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: spacing.xs,
   },
   welcomeText: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   wordmark: {
     fontSize: 28,
     lineHeight: 34,
     letterSpacing: 0.5,
-    textAlign: 'center',
+    textAlign: "center",
     fontFamily: typography.fontFamily.bold,
   },
   wordmarkCompact: {

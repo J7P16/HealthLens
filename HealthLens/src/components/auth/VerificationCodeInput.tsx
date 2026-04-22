@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { radius, sizes, spacing, typography } from '@/src/theme';
 import type { AppTheme } from '@/src/theme';
@@ -18,10 +18,16 @@ export function VerificationCodeInput({
 }: VerificationCodeInputProps) {
   const inputRef = useRef<TextInput>(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const cleanValue = value.replace(/[^0-9]/g, '').slice(0, length);
   const cells = Array.from({ length }, (_, index) => cleanValue[index] ?? '');
-  const activeIndex = Math.min(cleanValue.length, length - 1);
-  const isFilled = cleanValue.length >= length;
 
   return (
     <Pressable onPress={() => inputRef.current?.focus()}>
@@ -31,13 +37,13 @@ export function VerificationCodeInput({
         onChangeText={(text) => onChange(text.replace(/[^0-9]/g, '').slice(0, length))}
         keyboardType="number-pad"
         maxLength={length}
+        autoFocus
         style={styles.hiddenInput}
       />
 
       <View style={styles.row}>
         {cells.map((cell, index) => {
-          const isCompleted = !!cell;
-          const isActive = !isFilled && index === activeIndex;
+          const isFilled = !!cell;
 
           return (
             <View
@@ -46,10 +52,7 @@ export function VerificationCodeInput({
                 styles.cell,
                 {
                   backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                },
-                (isCompleted || isActive) && {
-                  borderColor: theme.colors.borderStrong,
+                  borderColor: isFilled ? theme.colors.borderStrong : theme.colors.border,
                 },
               ]}
             >

@@ -1,23 +1,25 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
-import { AuthCard } from '@/src/components/auth/AuthCard';
-import { AuthLogo } from '@/src/components/auth/AuthLogo';
-import { Divider } from '@/src/components/ui/Divider';
-import { InputField } from '@/src/components/ui/InputField';
-import { PrimaryButton } from '@/src/components/ui/PrimaryButton';
-import { Screen } from '@/src/components/ui/Screen';
-import { SocialButton } from '@/src/components/ui/SocialButton';
-import { TextLink } from '@/src/components/ui/TextLink';
-import { routes } from '@/src/constants/routes';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { spacing } from '@/src/theme';
-import { AppText } from '@/src/components/ui/AppText';
+import React, { useState } from "react";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { router } from "expo-router";
+import { AuthCard } from "@/src/components/auth/AuthCard";
+import { AuthLogo } from "@/src/components/auth/AuthLogo";
+import { Divider } from "@/src/components/ui/Divider";
+import { InputField } from "@/src/components/ui/InputField";
+import { PrimaryButton } from "@/src/components/ui/PrimaryButton";
+import { Screen } from "@/src/components/ui/Screen";
+import { SocialButton } from "@/src/components/ui/SocialButton";
+import { TextLink } from "@/src/components/ui/TextLink";
+import { routes } from "@/src/constants/routes";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { spacing } from "@/src/theme";
+import { AppText } from "@/src/components/ui/AppText";
+import { useAuth } from "@/src/hooks/authHooks";
 
 export default function SignInScreen() {
-  const theme = useAppTheme('light');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signInWithPassword, signInWithGoogle, loading, error } = useAuth("/(tabs)/diagnose");
+  const theme = useAppTheme("light");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { width } = useWindowDimensions();
   const isWide = width >= 900;
 
@@ -25,11 +27,10 @@ export default function SignInScreen() {
     <Screen
       theme={theme}
       scroll
-      contentContainerStyle={[
-        styles.screenContent,
-        isWide && styles.screenContentWide,
-      ]}
-    >   <View style={styles.content}>
+      contentContainerStyle={[styles.screenContent, isWide && styles.screenContentWide]}
+    >
+      {" "}
+      <View style={styles.content}>
         <AuthLogo theme={theme} showDots />
 
         <AuthCard theme={theme}>
@@ -61,25 +62,26 @@ export default function SignInScreen() {
                 />
               </View>
             </View>
-            <PrimaryButton
-              theme={theme}
-              label="Log In"
-              onPress={() => router.push(routes.diagnose)}
-            />
+            <PrimaryButton theme={theme} label="Log In" onPress={() => signInWithPassword(email, password)} />
           </View>
         </AuthCard>
 
         <View style={styles.authExtras}>
           <Divider theme={theme} />
           <View style={styles.socialGroup}>
-            <SocialButton theme={theme} provider="google" label="Continue with Google" />
-            <SocialButton theme={theme} provider="apple" label="Continue with Apple" />
+            <SocialButton
+              theme={theme}
+              provider="google"
+              label="Continue with Google"
+              onPress={() => signInWithGoogle()}
+            />
+            <SocialButton theme={theme} provider="apple" label="Continue with Apple (Coming Soon)" />
           </View>
           <View style={styles.bottomCta}>
             <AppText
               theme={theme}
               variant="body"
-              style={{ color: theme.colors.textMuted, textAlign: 'center' }}
+              style={{ color: theme.colors.textMuted, textAlign: "center" }}
             >
               New Here? Create an account today and never miss the latest updates
             </AppText>
@@ -98,15 +100,15 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   screenContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   screenContentWide: {
     paddingVertical: spacing.xxl,
   },
   content: {
-    width: '100%',
+    width: "100%",
     maxWidth: 460,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   contentWide: {
     maxWidth: 520,
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   forgotLinkWrap: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginTop: -2,
   },
   authExtras: {
