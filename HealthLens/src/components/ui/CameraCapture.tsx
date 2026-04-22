@@ -14,6 +14,7 @@ type Props = {
 export default function CameraCapture({ onCapture, onClose }: Props) {
   const cameraRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
+  const [facing, setFacing] = useState<"back" | "front">("back");
 
   useEffect(() => {
     setIsReady(false);
@@ -28,7 +29,7 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
 
   return (
     <View style={{ flex: 1 }}>
-      <CameraView ref={cameraRef} style={{flex: 1}} facing="back" onCameraReady={() => setIsReady(true)}>
+      <CameraView ref={cameraRef} style={{flex: 1}} facing={facing} onCameraReady={() => setIsReady(true)}>
         <Pressable
           onPress={onClose}
           style={{
@@ -65,6 +66,25 @@ export default function CameraCapture({ onCapture, onClose }: Props) {
                     backgroundColor: Colors.palette.white,
                 }}
             />
+            <Pressable
+                onPress={() =>
+                    setFacing(prev => (prev === "back" ? "front" : "back"))
+                }
+                style={{
+                    position: "absolute",
+                    top: Spacing.spacing.xl,
+                    left: Spacing.spacing.xl,
+                    width: Sizes.sizes.iconLg,
+                    height: Sizes.sizes.iconLg,
+                    borderRadius: Radius.radius.round,
+                    backgroundColor: Colors.palette.shadowDark,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 10
+                }}
+                >
+                <Text style={{ color: "white", fontSize: Sizes.sizes.iconMd}}>↻</Text>
+            </Pressable>
         </View>
         )}
       </CameraView>
