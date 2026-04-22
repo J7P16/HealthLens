@@ -1,83 +1,81 @@
-import { storage, db } from "../HealthLens/firebaseConfig";
+import { storage, db } from "./app/config/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, orderBy } from "firebase/firestore";
 
-export const uploadImageToFirebase = async (uri: string) => {
+export const uploadImageToFirebase = async (uri: string, userId: string) => {
     try {
-        /** Converting uri into blob. uri is the string the points to the location of where the picture is being stored.
-         * Blob is the actual raw image data. This is done since firebase can't just use the uri. */
         const response = await fetch(uri);
         const blob = await response.blob();
 
-        // Creating unique file name.
-        const filename = `diagnoses/${Date.now()}.jpg`;
-        const storageRef = ref(storage, filename);
+        const filename = `${Date.now()}.jpg`;
+        const storagePath = `images/${userId}/${filename}`;
+        const storageRef = ref(storage, storagePath);
 
-        // Uploading to Firebase.
         await uploadBytes(storageRef, blob);
 
-        // Getting download URL.
         const downloadURL = await getDownloadURL(storageRef);
-
-        // Saving meta data to Firestore.
-        const docRef = await addDoc(collection(db, 'diagnoses'), {
-            imageURL: downloadURL,
-            timestamp: new Date(),
-            filename: filename,
-            analyzed: false,
-        });
 
         return {
             success: true,
             downloadURL,
-            docId: docRef.id,
+            storagePath,
         };
+
     } catch (error) {
         console.error('Error uploading image:', error);
         return {
             success: false,
-            error: error,
+            error,
         };
     }
 };
 
 export const getImagesFromFirebase = async () => {
     try {
-        const q = query(collection(db, 'diagnoses'), orderBy('timestamp', 'desc'))
+        const q = query(collection(db, 'diagnoses'), orderBy('timestamp', 'desc'));
         const querySnapshot = await getDocs(q);
 
-        const images = querySnapshot.docs.map(doc => ({
+        return querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
         }));
-
-        return images;
     } catch (error) {
         console.error('Error fetching images:', error);
         return [];
     }
 };
 
-export const uploadAndDiagnose = async (uri: string) => {
-    const uploadResult = await uploadImageToFirebase(uri);
+export const uploadAndDiagnose = async (uri: string, userId: string) => {
+    console.log("🔥 uploadAndDiagnose CALLED");
+    const uploadResult = await uploadImageToFirebase(uri, userId);
 
     if (!uploadResult.success) return uploadResult;
 
-    const firebasePath = uploadResult.downloadURL
-        .split('/o/')[1]
-        .split('?')[0]
-        .replace(/%2F/g, '/');
+    try {
+        const response = await fetch("http://10.148.181.198:3000/api/diagnose", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                firebasePath: uploadResult.storagePath,
+                userId: userId,
+            }),
+        });
 
-    const response = await fetch('http://localhost:3000/api/diagnose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firebasePath })
-    });
+        const result = await response.json();
 
-    const result = await response.json();
-
-    return {
-        ...uploadResult,
-        diagnosis: result
-    };
+        return {
+            success: true,
+            downloadURL: uploadResult.downloadURL,
+            storagePath: uploadResult.storagePath,
+            diagnosis: result,
+        };
+    } catch (error) {
+        console.error("Backend error:", error);
+        return {
+            success: false,
+            error,
+        };
+    }
 };

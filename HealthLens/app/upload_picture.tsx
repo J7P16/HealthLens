@@ -25,6 +25,8 @@ import * as Typography from "./src/theme/tokens/typography";
 import * as Sizes from "./src/theme/tokens/sizes";
 import * as Shadows from "./src/theme/tokens/shadows";
 import * as Gradients from "./src/theme/tokens/gradients";
+import * as ImagePicker from "expo-image-picker";
+import { uploadAndDiagnose } from "../uploadImage";
 
 export default function UploadPicture() {
   const { width, height } = useWindowDimensions();
@@ -76,7 +78,25 @@ export default function UploadPicture() {
           icon={require("../assets/images/camera.png")}
           color={Gradients.gradients.primary}
           style={{ marginTop: "5%", marginBottom: "1%" }}
-          onPress={() => router.push("/somewhere")}
+          onPress={async () => {
+            console.log("👉 BUTTON PRESSED - calling backend now");
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              const uri = result.assets[0].uri;
+
+              console.log("Uploading + diagnosing...");
+
+              const response = await uploadAndDiagnose(uri, "user1");
+
+              console.log("RESULT:", response);
+
+              setPhotoUploaded(true);
+            }
+          }}
         />
 
         <PrimaryButton
@@ -84,7 +104,25 @@ export default function UploadPicture() {
           icon={require("../assets/images/upload.png")}
           color={Gradients.gradients.coral}
           style={{ marginTop: "1%", marginBottom: "5%" }}
-          onPress={() => router.push("/somewhere")}
+          onPress={async () => {
+            console.log("👉 BUTTON PRESSED - calling backend now");
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              const uri = result.assets[0].uri;
+
+              console.log("Uploading + diagnosing...");
+
+              const response = await uploadAndDiagnose(uri, "user1");
+
+              console.log("RESULT:", response);
+
+              setPhotoUploaded(true);
+            }
+          }}
         />
       </View>
 
