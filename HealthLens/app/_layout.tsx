@@ -1,10 +1,29 @@
-import { Stack } from "expo-router";
+// app/_layout.tsx
+import { Slot } from "expo-router";
+import { useFonts } from "expo-font";
+import { ActivityIndicator, View } from "react-native";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 export default function RootLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: "Home" }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
-  );
+  const theme = useAppTheme("light");
+  const [fontsLoaded] = useFonts({
+    Monda: require("./styles/fonts/Monda.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <ActivityIndicator color={theme.colors.link} />
+      </View>
+    );
+  }
+
+  return <Slot />;
 }

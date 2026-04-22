@@ -1,81 +1,47 @@
 import { storage, db } from "./app/config/firebaseConfig";
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, getDocs, query, orderBy } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 
-export const uploadImageToFirebase = async (uri: string, userId: string) => {
+export const uploadImageToFirebase = async (uri: string) => {
     try {
         const response = await fetch(uri);
         const blob = await response.blob();
 
-        const filename = `${Date.now()}.jpg`;
-        const storagePath = `images/${userId}/${filename}`;
-        const storageRef = ref(storage, storagePath);
+        const filename = `diagnoses/${Date.now()}.jpg`;
+        const storageRef = ref(storage, filename);
 
+        // 1️⃣ Upload to Storage
         await uploadBytes(storageRef, blob);
 
+        // 2️⃣ Get public URL
         const downloadURL = await getDownloadURL(storageRef);
+
+        // 3️⃣ Save metadata to Firestore
+        const docRef = await addDoc(collection(db, "diagnoses"), {
+            imageUrl: downloadURL,
+            timestamp: Timestamp.now(),
+            filename,
+            analyzed: false,
+        });
 
         return {
             success: true,
             downloadURL,
-            storagePath,
+            docId: docRef.id,
         };
-
     } catch (error) {
-        console.error('Error uploading image:', error);
-        return {
-            success: false,
-            error,
-        };
+        console.error("🔥 Firebase upload failed:", error);
+        throw error; // ⬅️ IMPORTANT: fail hard so UI knows
     }
 };
 
 export const getImagesFromFirebase = async () => {
-    try {
-        const q = query(collection(db, 'diagnoses'), orderBy('timestamp', 'desc'));
-        const querySnapshot = await getDocs(q);
+    const q = query(collection(db, "diagnoses"), orderBy("timestamp", "desc"));
 
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
-    } catch (error) {
-        console.error('Error fetching images:', error);
-        return [];
-    }
-};
+    const snapshot = await getDocs(q);
 
-export const uploadAndDiagnose = async (uri: string, userId: string) => {
-    console.log("🔥 uploadAndDiagnose CALLED");
-    const uploadResult = await uploadImageToFirebase(uri, userId);
-
-    if (!uploadResult.success) return uploadResult;
-
-    try {
-        const response = await fetch("http://10.148.181.198:3000/api/diagnose", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                firebasePath: uploadResult.storagePath,
-                userId: userId,
-            }),
-        });
-
-        const result = await response.json();
-
-        return {
-            success: true,
-            downloadURL: uploadResult.downloadURL,
-            storagePath: uploadResult.storagePath,
-            diagnosis: result,
-        };
-    } catch (error) {
-        console.error("Backend error:", error);
-        return {
-            success: false,
-            error,
-        };
-    }
+    return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    }));
 };

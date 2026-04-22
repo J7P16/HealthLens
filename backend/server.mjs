@@ -1,105 +1,155 @@
-import express from 'express';
-import cors from 'cors';
-import OpenAI from 'openai';
-import 'dotenv/config';
-import { spawn } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
+import express from "express";
+import cors from "cors";
+import OpenAI from "openai";
+import "dotenv/config";
+import { spawn } from "child_process";
+import path from "path";
+import admin from "firebase-admin";
+import fs from "fs/promises";
 
+admin.initializeApp({
+  credential: admin.credential.applicationDefault(),
+  storageBucket: "healthlens-942ea.firebasestorage.app",
+});
+
+const bucket = admin.storage().bucket();
 const app = express();
 const openai = new OpenAI();
 
-app.use(cors()); 
-app.use(express.json()); 
+app.use(cors());
+app.use(express.json());
 
-// run python cnn script and read the output file of predict.py
-function runCNNModel(imagePath) {
+/**
+ * RUN PYTHON MODEL (NO FILE READING)
+ */
+function runCNNModel(firebasePath) {
   return new Promise((resolve, reject) => {
-    
-    // specify the paths for the python script and the model
-    const scriptPath = path.resolve('../ml/scripts/predict.py');
-    const modelPath = path.resolve('../ml/models/best_model.pth'); 
+    const scriptPath = path.resolve("../ml/scripts/predict.py");
+    const modelPath = path.resolve("../ml/models/best_model.pth");
 
-    // run python: python3 predict.py --model_path [path] --input [imagePath]
-    const pythonProcess = spawn('python3', [
+    const python = spawn("python3", [
       scriptPath,
-      '--model_path', modelPath,
-      '--input', imagePath
+      "--model_path",
+      modelPath,
+      "--input",
+      `firebase://${firebasePath}`,
     ]);
 
-    pythonProcess.stderr.on('data', (data) => {
-      console.error(`[Python Error]: ${data.toString()}`);
+    let output = "";
+    let error = "";
+
+    python.stdout.on("data", (data) => {
+      output += data.toString();
     });
 
-    // execute when python script is succesfully run (code === 0)
-    pythonProcess.on('close', async (code) => {
+    python.stderr.on("data", (data) => {
+      error += data.toString();
+    });
+
+    python.on("close", (code) => {
       if (code !== 0) {
-        return reject(new Error(`Python script failed with code ${code}`));
+        console.error(error);
+        return reject(new Error("Python failed"));
       }
 
       try {
-        // infer the filename based on how predict.py saves files
-        const baseName = path.parse(imagePath).name;
-        
-        // Must change path name (refer to PREDICTIONS_DIR in predict.py)
-        const predictionsDir = "/Users/[real path name]"; 
-        const fullJsonPath = path.join(predictionsDir, `${baseName}_full.json`);
-
-        // read the json file and convert it into a javascript object
-        const fileContent = await fs.readFile(fullJsonPath, 'utf-8');
-        const result = JSON.parse(fileContent);
-
-        // extract only the diagnosis name from the result
-        const topPredictions = result.prediction.top_k_predictions;
-        resolve(topPredictions);
-
-      } catch (err) {
-        reject(new Error("Failed to read JSON output from Python: " + err.message));
+        const json = JSON.parse(output);
+        resolve(json.prediction.top_k_predictions);
+      } catch (e) {
+        reject(new Error("Invalid JSON from Python stdout"));
       }
     });
   });
 }
 
-// main api route
-app.post('/api/diagnose', async (req, res) => {
+/**
+ * MAIN PIPELINE
+ */
+app.post("/api/diagnose", async (req, res) => {
   try {
-    const imagePath = req.body.imagePath;
-    if (!imagePath) throw new Error("Image path is required.");
-    console.log(`\n[Server] Received request to diagnose image: ${imagePath}`);
+    const { firebasePath } = req.body;
 
-    // run cnn model (get results from the json file)
-    console.log("[Server] Running CNN Model (Python)...");
-    const cnnDiagnosisList = await runCNNModel(imagePath);
+    if (!firebasePath) {
+      return res.status(400).json({ error: "Missing firebasePath" });
+    }
 
-    // pass the result to openai 
-    console.log(`[Server] Python finished. Asking OpenAI about: ${cnnDiagnosisList}...`);
-    const chatCompletion = await openai.chat.completions.create({
+    console.log("\n[Backend] Received:", firebasePath);
+
+    // 1. Run CNN
+    const cnnResult = await runCNNModel(firebasePath);
+
+    console.log("[Backend] CNN result:", cnnResult);
+
+    // 2. OpenAI reasoning
+    const chat = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: "You are a dermatology assistant. You will receive top 3 predictions with probabilities from a CNN model. You must respond in valid JSON format with exactly three keys: 'diagnosis' (state the most likely one), 'simple_explanation' (explain it simply, mentioning if other conditions are also possible based on probabilities), and 'recommended_action'."
+          content:
+            "You are a dermatology assistant. Return JSON with diagnosis, simple_explanation, recommended_action.",
         },
         {
           role: "user",
-          content: `The CNN model output is: ${JSON.stringify(cnnDiagnosisList)}. Please provide details.`
-        }
-      ]
+          content: `CNN output: ${JSON.stringify(cnnResult)}`,
+        },
+      ],
     });
 
-    // send the final response to the frontend
-    const finalJsonObject = JSON.parse(chatCompletion.choices[0].message.content);
-    console.log("[Server] Success: Sending final JSON to frontend.");
-    res.json(finalJsonObject);
+    const aiResult = JSON.parse(chat.choices[0].message.content);
 
-  } catch (error) {
-    console.error("[Server] Error:", error.message);
-    res.status(500).json({ error: "Failed to generate diagnosis." });
+    console.log("[Backend] AI result ready");
+
+    console.log("\n🧠 FINAL AI JSON OUTPUT:");
+    console.log(JSON.stringify(aiResult, null, 2));
+
+    // 3. CREATE FINAL JSON
+    const finalResult = {
+      cnn: cnnResult,
+      ai: aiResult,
+      timestamp: new Date().toISOString(),
+    };
+
+    // 4. FIX PATH HANDLING
+    const fileName = path.basename(firebasePath, path.extname(firebasePath));
+
+    // extract userId from "images/userId/file.jpg"
+    const parts = firebasePath.split("/");
+    const userId = parts[1];
+    const imageFolder = fileName;
+
+    const finalPath = `predictions/${userId}/${imageFolder}/${fileName}_final.json`;
+
+    // 5. TEMP FILE (portable version)
+    const tmpPath = path.join(process.cwd(), `${fileName}_final.json`);
+
+    await fs.writeFile(tmpPath, JSON.stringify(finalResult, null, 2));
+
+    // 6. Upload to Firebase Storage
+    await bucket.upload(tmpPath, {
+      destination: finalPath,
+      metadata: {
+        contentType: "application/json",
+      },
+    });
+
+    console.log("[Backend] Uploaded final JSON to:", finalPath);
+
+    // 7. Return response
+    res.json({
+      success: true,
+      cnn: cnnResult,
+      ai: aiResult,
+      firebaseFinalPath: finalPath,
+    });
+
+  } catch (err) {
+    console.error("[Backend Error]", err);
+    res.status(500).json({ error: "Pipeline failed" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Backend server is running and listening on http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log("🚀 Backend running on http://localhost:3000");
 });

@@ -1,0 +1,31 @@
+{
+  "cnn": [
+    {
+      "rank": 1,
+      "class_index": 5,
+      "class_name": "Melanocytic Nevi",
+      "confidence": 0.448176,
+      "confidence_pct": "44.82%"
+    },
+    {
+      "rank": 2,
+      "class_index": 4,
+      "class_name": "Melanoma",
+      "confidence": 0.181097,
+      "confidence_pct": "18.11%"
+    },
+    {
+      "rank": 3,
+      "class_index": 1,
+      "class_name": "Basal Cell Carcinoma",
+      "confidence": 0.110974,
+      "confidence_pct": "11.10%"
+    }
+  ],
+  "ai": {
+    "diagnosis": "Melanocytic Nevi",
+    "simple_explanation": "Melanocytic nevi are common and usually benign skin lesions, often known as moles, that result from the proliferation of melanocytes (the cells that produce pigment in the skin).",
+    "recommended_action": "Monitor the nevi for any changes in size, shape, color, or texture. If any changes occur, or if you have concerns, consult a healthcare professional for further evaluation."
+  },
+  "timestamp": "2026-04-22T20:21:16.141Z"
+}

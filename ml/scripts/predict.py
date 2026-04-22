@@ -8,20 +8,15 @@ import uuid
 
 import torch
 import torch.nn as nn
-import timm
 from torchvision import transforms
 from torchvision.models import efficientnet_b3
 from PIL import Image
 import firebase_admin
 from firebase_admin import credentials, storage
 
-
 USE_FIREBASE = True
-if USE_FIREBASE:
-    import firebase_admin
-    from firebase_admin import credentials, storage
 
-PREDICTIONS_DIR = os.path.abspath("/Users/[real path name]")
+PREDICTIONS_DIR = os.path.abspath("/Users/krishgandhi/HealthLens/backend/predictions")
 os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,15 +32,14 @@ CLASS_NAMES = [
     "Vascular Lesion",
 ]
 
-parser = argparse.ArgumentParser(description="Skin lesion classifier")
+parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, required=True)
 parser.add_argument("--input", type=str, required=True)
 args = parser.parse_args()
 
 if USE_FIREBASE:
     if not firebase_admin._apps:
-        CREDENTIAL_PATH = os.path.abspath("/Users/[real path name]")
-        cred = credentials.Certificate(CREDENTIAL_PATH)
+        cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
             "storageBucket": "healthlens-942ea.firebasestorage.app"
         })
@@ -59,20 +53,25 @@ if USE_FIREBASE:
         blob = bucket.blob(remote_path)
         blob.upload_from_filename(local_file)
 
+
 def build_model(num_classes):
     model = efficientnet_b3(weights=None)
     in_features = model.classifier[1].in_features
     model.classifier[1] = nn.Linear(in_features, num_classes)
     return model
 
-model = build_model(num_classes=len(CLASS_NAMES))
-checkpoint = torch.load(args.model_path, map_location=DEVICE, weights_only=False)
+
+model = build_model(len(CLASS_NAMES))
+checkpoint = torch.load(args.model_path, map_location=DEVICE)
+
 if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
     model.load_state_dict(checkpoint["model_state_dict"])
 else:
     model.load_state_dict(checkpoint)
+
 model.to(DEVICE)
 model.eval()
+
 
 preprocess = transforms.Compose([
     transforms.Resize((300, 300)),
@@ -81,20 +80,18 @@ preprocess = transforms.Compose([
                          [0.229, 0.224, 0.225]),
 ])
 
+
 def get_local_image(input_path):
     if input_path.startswith("firebase://"):
         firebase_path = input_path.replace("firebase://", "")
         local_path = os.path.join(PREDICTIONS_DIR, f"{uuid.uuid4()}.jpg")
         download_image(firebase_path, local_path)
         return local_path
-    else:
-        return input_path
+    return input_path
+
 
 def predict_image(image_path):
-    try:
-        img = Image.open(image_path).convert("RGB")
-    except Exception:
-        exit(1)
+    img = Image.open(image_path).convert("RGB")
 
     tensor = preprocess(img).unsqueeze(0).to(DEVICE)
 
@@ -114,9 +111,12 @@ def predict_image(image_path):
         for i, (idx, prob) in enumerate(ranked[:3])
     ]
 
-    all_probs = {CLASS_NAMES[i]: round(p, 6) for i, p in enumerate(probs)}
+    all_probs = {
+        CLASS_NAMES[i]: round(p, 6) for i, p in enumerate(probs)
+    }
 
     return top_k, all_probs
+
 
 image_path = get_local_image(args.input)
 
@@ -124,12 +124,15 @@ top_k, all_probs = predict_image(image_path)
 
 top1 = top_k[0]
 
-base_name = os.path.splitext(os.path.basename(image_path))[0]
+firebase_path = args.input.replace("firebase://", "")
+parts = firebase_path.split("/")
+user_id = parts[1]
+image_name = os.path.splitext(parts[-1])[0]
 
 full_output = {
     "metadata": {
-        "timestamp": datetime.now().isoformat() + "Z",
-        "model_path": os.path.abspath(args.model_path),
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "model": os.path.abspath(args.model_path),
         "device": str(DEVICE),
     },
     "prediction": {
@@ -141,23 +144,27 @@ full_output = {
     }
 }
 
-full_path = os.path.join(PREDICTIONS_DIR, f"{base_name}_full.json")
+
+full_path = os.path.join(
+    PREDICTIONS_DIR,
+    user_id,
+    image_name,
+    "full.json"
+)
+
+os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
 with open(full_path, "w") as f:
     json.dump(full_output, f, indent=2)
 
-simple_output = {
-    "cnn_diagnosis": top1["class_name"]
-}
-
-simple_path = os.path.join(PREDICTIONS_DIR, f"{base_name}_simple.json")
-
-with open(simple_path, "w") as f:
-    json.dump(simple_output, f, indent=2)
 
 if USE_FIREBASE:
     try:
-        upload_file(full_path, f"predictions/{base_name}_full.json")
-        upload_file(simple_path, f"predictions/{base_name}_simple.json")
-    except Exception:
-        pass
+        upload_file(
+            full_path,
+            f"predictions/{user_id}/{image_name}/full.json"
+        )
+    except Exception as e:
+        print("Firebase upload failed:", e)
+
+print(json.dumps(full_output))

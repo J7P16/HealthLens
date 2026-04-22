@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "timestamp": "2026-04-22T19:44:42.939646Z",
+    "model": "/Users/krishgandhi/HealthLens/ml/models/best_model.pth",
+    "device": "cpu"
+  },
+  "prediction": {
+    "predicted_class": "Melanocytic Nevi",
+    "confidence": 0.341546,
+    "confidence_pct": "34.15%",
+    "top_k_predictions": [
+      {
+        "rank": 1,
+        "class_index": 5,
+        "class_name": "Melanocytic Nevi",
+        "confidence": 0.341546,
+        "confidence_pct": "34.15%"
+      },
+      {
+        "rank": 2,
+        "class_index": 4,
+        "class_name": "Melanoma",
+        "confidence": 0.180744,
+        "confidence_pct": "18.07%"
+      },
+      {
+        "rank": 3,
+        "class_index": 1,
+        "class_name": "Basal Cell Carcinoma",
+        "confidence": 0.131347,
+        "confidence_pct": "13.13%"
+      }
+    ],
+    "all_class_probabilities": {
+      "Actinic Keratosis": 0.063555,
+      "Basal Cell Carcinoma": 0.131347,
+      "Benign Keratosis": 0.119911,
+      "Dermatofibroma": 0.040203,
+      "Melanoma": 0.180744,
+      "Melanocytic Nevi": 0.341546,
+      "Squamous Cell Carcinoma": 0.070575,
+      "Vascular Lesion": 0.052119
+    }
+  }
+}
