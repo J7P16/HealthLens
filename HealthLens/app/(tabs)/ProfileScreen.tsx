@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import * as Typography from "@/src/theme/tokens/typography";
 import {
   View,
   Text,
@@ -58,8 +59,8 @@ const SEVERITY_COLORS: Record<Severity, string> = {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const FONT = "Montiff";
-const BLUE = "#5187DD";
+const FONT = Typography.typography.fontFamily.regular;
+const BLUE = "#56A4E0CC";
 const BG   = "#EEF2F7";
 
 const cardShadow = {

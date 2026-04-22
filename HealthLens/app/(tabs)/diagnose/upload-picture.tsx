@@ -20,6 +20,7 @@ import PhotoPreviewModal from "@/src/components/ui/PhotoPreview";
 import CameraCapture from "@/src/components/ui/CameraCapture";
 import { uploadUserImage } from "@/src/hooks/imageHooks"; // ← update path as needed
 import { useUser } from "@/src/hooks/authHooks";
+import Header from "@/src/components/ui/Header";
 
 export default function UploadPicture() {
   const { width, height } = useWindowDimensions();
@@ -58,7 +59,7 @@ export default function UploadPicture() {
     setUploading(true);
     try {
       await Promise.all(photos.map((p) => uploadUserImage(user.uid, p.uri)));
-      router.push("/(tabs)/diagnose/PhotoPreviewSection"); // ← correct route
+      router.push("/(tabs)/diagnose/results"); // ← correct route
     } catch {
       Alert.alert("Error", "Upload failed. Please try again.");
     } finally {
@@ -87,29 +88,10 @@ export default function UploadPicture() {
       contentContainerStyle={[styles.screenContent, isWide && styles.screenContentWide]}
     >
       <View style={styles.content}>
-        <View style={styles.upload}>
-          <Image
-            source={require("@/src/assets/images/lens.png")}
-            style={[styles.icon]}
-            resizeMode="contain"
-          />
-          <View style={{ justifyContent: "center", flex: 1 }}>
-            <Text
-              style={[
-                styles.titleText,
-                {
-                  fontSize: isCompact
-                    ? Typography.typography.size.subtitle
-                    : Typography.typography.size.title,
-                },
-              ]}
-            >
-              Upload a Picture
-            </Text>
-            <Text style={styles.subtitleText}>{"Scan your skin and see what's going on!"}</Text>
-          </View>
-        </View>
-
+      <Header
+        title="Upload a Picture"
+        subtitle="Scan your skin and see what's going on!"
+      />
         {photos.length > 0 ? (
           <View
             style={[
@@ -216,19 +198,6 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 460,
     alignSelf: "center",
-  },
-  icon: {
-    height: Sizes.sizes.iconLg,
-    width: Sizes.sizes.iconLg,
-  },
-  upload: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    gap: 5,
-  },
-  titleText: {
-    fontFamily: Typography.typography.fontFamily.regular,
   },
   subtitleText: {
     color: "#959595",
